@@ -17,7 +17,7 @@ class EncoderLayer(nn.Module):
     def forward(self, enc_input, non_pad_mask=None, slf_attn_mask=None):
         enc_output, enc_slf_attn = self.slf_attn(
             enc_input, enc_input, enc_input, mask=slf_attn_mask) # for encoder, Q, V and K are all inputs!
-        enc_output *= non_pad_mask  #?? Multplication by None give error, Neh?
+        enc_output *= non_pad_mask  #?? Multplication by None give error, Nah?
 
         enc_output = self.pos_ffn(enc_output)
         enc_output *= non_pad_mask  #??
@@ -26,7 +26,7 @@ class EncoderLayer(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    ''' Compose of three layers '''
+    ''' Composed of three layers '''
 
     def __init__(self, d_model, d_inner, n_head, d_k, d_v, dropout=0.1):
         super(DecoderLayer, self).__init__()
@@ -47,3 +47,26 @@ class DecoderLayer(nn.Module):
         dec_output *= non_pad_mask #mask 3
 
         return dec_output, dec_slf_attn, dec_enc_attn
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

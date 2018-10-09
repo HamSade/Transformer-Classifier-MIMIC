@@ -7,10 +7,14 @@ from transformer.Layers import EncoderLayer, DecoderLayer
 
 __author__ = "Yu-Hsiang Huang"
 
+
+
+##########################################################
 def get_non_pad_mask(seq):
     assert seq.dim() == 2
     return seq.ne(Constants.PAD).type(torch.float).unsqueeze(-1)
 
+##########################################################
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
     ''' Sinusoid position encoding table '''
 
@@ -32,9 +36,7 @@ def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
 
     return torch.FloatTensor(sinusoid_table)
 
-
-
-
+##########################################################
 def get_attn_key_pad_mask(seq_k, seq_q):
     ''' For masking out the padding part of key sequence. '''
 
@@ -45,7 +47,7 @@ def get_attn_key_pad_mask(seq_k, seq_q):
 
     return padding_mask
 
-
+##########################################################
 def get_subsequent_mask(seq):
     ''' For masking out the subsequent info. '''
 
@@ -58,7 +60,7 @@ def get_subsequent_mask(seq):
 
 
 
-
+##########################################################
 class Encoder(nn.Module):
     ''' A encoder model with self attention mechanism. '''
 
@@ -70,14 +72,15 @@ class Encoder(nn.Module):
 
         super().__init__()
 
-        n_position = len_max_seq + 1  #Maybe because of EOS. Not sure.
+        n_position = len_max_seq + 1  #Maybe because of SOS. Not sure.
 
         self.src_word_emb = nn.Embedding(
-            n_src_vocab, d_word_vec, padding_idx=Constants.PAD)
+            n_src_vocab, d_word_vec, padding_idx=Constants.PAD)  #THis is not required for time series
 
         self.position_enc = nn.Embedding.from_pretrained(
-            get_sinusoid_encoding_table(n_position, d_word_vec, padding_idx=0),
-            freeze=True)
+            get_sinusoid_encoding_table(n_position, d_word_vec, padding_idx=0), #padding index is for SOS
+            freeze=True)  #Loading the table as a pretrained embedding. freeze=True makes sure it wiull not be updates and the same
+            #across encoder and decoder
 
         self.layer_stack = nn.ModuleList([
             EncoderLayer(d_model, d_inner, n_head, d_k, d_v, dropout=dropout)
@@ -107,12 +110,7 @@ class Encoder(nn.Module):
         return enc_output,
 
 
-
-
-
-
-
-
+##########################################################
 class Decoder(nn.Module):
     ''' A decoder model with self attention mechanism. '''
 
@@ -138,7 +136,7 @@ class Decoder(nn.Module):
 
     def forward(self, tgt_seq, tgt_pos, src_seq, enc_output, return_attns=False):
 
-        dec_slf_attn_list, dec_enc_attn_list = [], []
+        dec_slf_attn_list, dec_enc_attn_list = [], []  #Decoder has one more attn coming from Encoder
 
         # -- Prepare masks
         non_pad_mask = get_non_pad_mask(tgt_seq)
@@ -168,17 +166,7 @@ class Decoder(nn.Module):
         return dec_output,
 
 
-
-
-
-
-
-
-
-
-
-
-
+#########################################################################
 class Transformer(nn.Module):
     ''' A sequence to sequence model with attention mechanism. '''
 

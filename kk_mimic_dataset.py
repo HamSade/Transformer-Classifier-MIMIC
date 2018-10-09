@@ -6,6 +6,7 @@ Created on Fri Oct  5 10:40:35 2018
 """
 
 import torch
+
 from torch.utils import data
 #import numpy as np
 import sklearn.datasets as datasets
@@ -30,11 +31,13 @@ class kk_mimic_dataset(data.Dataset):
         
         print(self.features.shape)
         
+    def __len__(self):
+        return self.labels.shape[0]
+        
     def __getitem__(self, index):
         return self.temporal_features[index], self.labels[index], self.fixed_features[index]
     
-    def __len__(self):
-        return self.labels.shape[0]
+    
     
 #%% Data loader
         
