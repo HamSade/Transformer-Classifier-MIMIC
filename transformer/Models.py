@@ -66,7 +66,7 @@ class Encoder(nn.Module):
 
     def __init__(
             self,
-            d_src_vec, len_max_seq, d_word_vec,
+            len_max_seq, d_word_vec,
             n_layers, n_head, d_k, d_v,
             d_model, d_inner, dropout=0.1):
 
@@ -77,7 +77,7 @@ class Encoder(nn.Module):
 #            n_src_vocab, d_word_vec, padding_idx=Constants.PAD)  #THis is not required for time series
             
             
-        n_position = len_max_seq + 1  #Maybe because of SOS. Not sure.
+        n_position = len_max_seq #+ 1  #Because of SOS. Not required for continuous inputs
         self.position_enc = nn.Embedding.from_pretrained(
             get_sinusoid_encoding_table(n_position, d_word_vec, padding_idx=0), #padding index is for SOS
             freeze=True)  #Loading the table as a pretrained embedding. freeze=True makes sure it wiull not be updates and the same
