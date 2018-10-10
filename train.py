@@ -14,7 +14,7 @@ import torch.utils.data
 from transformer.Optim import ScheduledOptim
 
 
-from dataset import TranslationDataset, paired_collate_fn
+from kk_mimic_dataset import TranslationDataset, paired_collate_fn
 from transformer.Models import Transformer
 
 
