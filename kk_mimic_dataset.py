@@ -6,7 +6,6 @@ Created on Fri Oct  5 10:40:35 2018
 """
 
 import torch
-
 from torch.utils import data
 #import numpy as np
 import sklearn.datasets as datasets
