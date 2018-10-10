@@ -34,7 +34,7 @@ class ffn_compressed(nn.Module):
 class model(nn.Module):
     
     d_src_vec = 1440
-    d_word_vec = 304
+    d_emb_vec = 304
     len_max_seq = 10
     n_layers=3
     n_head = 8
@@ -43,14 +43,14 @@ class model(nn.Module):
         
     def __init__(self, d_src_vec=d_inner,            
                  len_max_seq=len_max_seq,
-                 d_word_vec=d_word_vec,
+                 d_emb_vec=d_emb_vec,
                  n_layers = n_layers,
-                 n_head=n_head, d_k=d_word_vec//n_head,
-                 d_v=d_word_vec//n_head, d_model=d_word_vec,
+                 n_head=n_head, d_k=d_emb_vec//n_head,
+                 d_v=d_emb_vec//n_head, d_model=d_emb_vec,
                  d_inner=d_inner, dropout=dropout):
         
         self.d_src_vec = d_src_vec
-        self.d_word_vec = d_word_vec
+        self.d_emb_vec = d_emb_vec
         self.len_max_seq = len_max_seq
         self.n_layers= n_layers
         self.n_head = n_head
@@ -58,7 +58,7 @@ class model(nn.Module):
         self.d_inner = d_inner
         
         self.ffn = ffn_compressed(d_in=self.d_src_vec, d_hid=self.d_inner,
-                                  d_out=self.d_word_vec)
+                                  d_out=self.d_emb_vec)
         
         self.encoder = Encoder(len_max_seq=self.len_max_seq, d_word_vec=self.d_word_vec,
             n_layers=self.n_layers, n_head=self.n_head, d_k=self.d_src_vec//self.n_head,
