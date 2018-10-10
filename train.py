@@ -11,11 +11,14 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
-import transformer.Constants as Constants
-from dataset import TranslationDataset, paired_collate_fn
-from transformer.Models import Transformer
 from transformer.Optim import ScheduledOptim
 
+
+from dataset import TranslationDataset, paired_collate_fn
+from transformer.Models import Transformer
+
+
+#%%
 def cal_performance(pred, gold, smoothing=False):
     ''' Apply label smoothing if needed '''
 
@@ -29,6 +32,7 @@ def cal_performance(pred, gold, smoothing=False):
 
     return loss, n_correct
 
+#%%
 def cal_loss(pred, gold, smoothing):
     ''' Calculate cross entropy loss, apply label smoothing if needed. '''
 
@@ -50,7 +54,7 @@ def cal_loss(pred, gold, smoothing):
 
     return loss
 
-
+#%%
 def train_epoch(model, training_data, optimizer, device, smoothing):
     ''' Epoch operation in training phase'''
 
@@ -91,6 +95,7 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
     accuracy = n_word_correct/n_word_total
     return loss_per_word, accuracy
 
+#%%
 def eval_epoch(model, validation_data, device):
     ''' Epoch operation in evaluation phase '''
 
@@ -125,6 +130,7 @@ def eval_epoch(model, validation_data, device):
     accuracy = n_word_correct/n_word_total
     return loss_per_word, accuracy
 
+#%%
 def train(model, training_data, validation_data, optimizer, device, opt):
     ''' Start training '''
 
@@ -188,6 +194,8 @@ def train(model, training_data, validation_data, optimizer, device, opt):
                     epoch=epoch_i, loss=valid_loss,
                     ppl=math.exp(min(valid_loss, 100)), accu=100*valid_accu))
 
+
+#%%
 def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
@@ -262,7 +270,7 @@ def main():
 
     train(transformer, training_data, validation_data, optimizer, device ,opt)
 
-
+#%%
 def prepare_dataloaders(data, opt):
     # ========= Preparing DataLoader =========#
     train_loader = torch.utils.data.DataLoader(
