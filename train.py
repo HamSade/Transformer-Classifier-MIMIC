@@ -14,9 +14,8 @@ import torch.utils.data
 from transformer.Optim import ScheduledOptim
 
 
-from kk_mimic_dataset import TranslationDataset, paired_collate_fn
-from transformer.Models import Transformer
-
+from kk_mimic_dataset import loader
+from Trasformer_classifier import model
 
 #%%
 def cal_performance(pred, gold, smoothing=False):
@@ -271,29 +270,29 @@ def main():
     train(transformer, training_data, validation_data, optimizer, device ,opt)
 
 #%%
-def prepare_dataloaders(data, opt):
-    # ========= Preparing DataLoader =========#
-    train_loader = torch.utils.data.DataLoader(
-        TranslationDataset(
-            src_word2idx=data['dict']['src'],
-            tgt_word2idx=data['dict']['tgt'],
-            src_insts=data['train']['src'],
-            tgt_insts=data['train']['tgt']),
-        num_workers=2,
-        batch_size=opt.batch_size,
-        collate_fn=paired_collate_fn,
-        shuffle=True)
-
-    valid_loader = torch.utils.data.DataLoader(
-        TranslationDataset(
-            src_word2idx=data['dict']['src'],
-            tgt_word2idx=data['dict']['tgt'],
-            src_insts=data['valid']['src'],
-            tgt_insts=data['valid']['tgt']),
-        num_workers=2,
-        batch_size=opt.batch_size,
-        collate_fn=paired_collate_fn)
-    return train_loader, valid_loader
+#def prepare_dataloaders(data, opt):
+#    # ========= Preparing DataLoader =========#
+#    train_loader = torch.utils.data.DataLoader(
+#        TranslationDataset(
+#            src_word2idx=data['dict']['src'],
+#            tgt_word2idx=data['dict']['tgt'],
+#            src_insts=data['train']['src'],
+#            tgt_insts=data['train']['tgt']),
+#        num_workers=2,
+#        batch_size=opt.batch_size,
+#        collate_fn=paired_collate_fn,
+#        shuffle=True)
+#
+#    valid_loader = torch.utils.data.DataLoader(
+#        TranslationDataset(
+#            src_word2idx=data['dict']['src'],
+#            tgt_word2idx=data['dict']['tgt'],
+#            src_insts=data['valid']['src'],
+#            tgt_insts=data['valid']['tgt']),
+#        num_workers=2,
+#        batch_size=opt.batch_size,
+#        collate_fn=paired_collate_fn)
+#    return train_loader, valid_loader
 
 
 if __name__ == '__main__':
