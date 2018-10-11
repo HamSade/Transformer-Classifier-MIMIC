@@ -36,7 +36,7 @@ def cal_loss(pred, gold):#, smoothing):
 #        loss = -(one_hot * log_prb).sum(dim=1)
 #        loss = loss.masked_select(non_pad_mask).sum()  # average later
 #    else:
-    loss = F.cross_entropy(pred, gold, reduction='sum')#ignore_index=Constants.PAD, )
+    loss = F.cross_entropy(pred, gold, reduction='sum') #ignore_index=Constants.PAD, )
 
     return loss
 
@@ -61,9 +61,9 @@ class cal_AUC():
     
     def __init__(self, pred, gold):
         self.auc = auc
-        pred = pred.max(1)[1]
-        gold = gold.contiguous().view(-1)
-        
+#        pred = pred.max(1)[1]
+        pred = pred.max(dim=1)   #TODO
+        gold = gold.contiguous().view(-1)        
         auc.add(pred, gold)
     
     def reset(self):
@@ -87,12 +87,12 @@ def train_epoch(model_, training_data, optimizer, device, smoothing):
             desc='  - (Training)   ', leave=False):
 
         # prepare data
-        src_seq, tgt = map(lambda x: x.to(device), batch)
+        src_seq, src_pos, tgt, src_fixed_feats = map(lambda x: x.to(device), batch)
 
         # forward
         optimizer.zero_grad()
 #        pred = model_(src_seq, src_pos, tgt_seq, tgt_pos)
-        pred = model_(src_Seq, src_pos) #TODO src_pos = ?
+        pred, self_attn_mat = model_(src_seq, src_pos) #TODO
         
         
         # backward

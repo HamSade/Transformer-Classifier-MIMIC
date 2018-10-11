@@ -34,7 +34,18 @@ class kk_mimic_dataset(data.Dataset):
         return self.labels.shape[0]
         
     def __getitem__(self, index):
-        return self.temporal_features[index], self.labels[index], self.fixed_features[index]
+        
+        src_seq = temporal_features[index]
+        src_fixed_feats = self.fixed_features[index]
+        tgt = self.labels[index]
+        
+        src_pos = np.array([
+            [pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <--- pos_i + 1 
+    
+        src_seq = torch.LongTensor(src_seq)
+        src_pos = torch.LongTensor(src_pos)
+        
+        return src_seq, src_pos, tgt, src_fixed_feats
     
     
     
