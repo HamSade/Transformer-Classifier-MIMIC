@@ -54,6 +54,11 @@ def cal_loss(pred, gold, smoothing):
     return loss
 
 #%%
+def cal_AUC(pred, gold):
+    
+    
+    
+#%%
 def train_epoch(model, training_data, optimizer, device, smoothing):
     ''' Epoch operation in training phase'''
 
