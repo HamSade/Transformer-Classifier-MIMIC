@@ -45,7 +45,7 @@ class kk_mimic_dataset(data.Dataset):
         src_seq = torch.LongTensor(src_seq)
         src_pos = torch.LongTensor(src_pos)
         
-        return src_seq, src_pos, tgt, src_fixed_feats
+        return src_seq, src_pos, gold, src_fixed_feats
     
     
     

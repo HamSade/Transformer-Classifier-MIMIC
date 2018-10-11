@@ -7,8 +7,6 @@ from transformer.Layers import EncoderLayer, DecoderLayer
 
 __author__ = "Yu-Hsiang Huang"
 
-
-
 ##########################################################
 def get_non_pad_mask(seq):
     assert seq.dim() == 2
@@ -58,8 +56,6 @@ def get_subsequent_mask(seq):
 
     return subsequent_mask
 
-
-
 ##########################################################
 class Encoder(nn.Module):
     ''' A encoder model with self attention mechanism. '''
@@ -75,8 +71,7 @@ class Encoder(nn.Module):
         # Index to continuous vector mapping
 #        self.src_word_emb = nn.Embedding(
 #            n_src_vocab, d_word_vec, padding_idx=Constants.PAD)  #THis is not required for time series
-            
-            
+                      
         n_position = len_max_seq #+ 1  #Because of SOS. Not required for continuous inputs
         self.position_enc = nn.Embedding.from_pretrained(
             get_sinusoid_encoding_table(n_position, d_word_vec, padding_idx=0), #padding index is for SOS

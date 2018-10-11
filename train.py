@@ -73,7 +73,7 @@ class cal_AUC():
         return auc.value()[0] # Only AUC   
     
 #%%
-def train_epoch(model_, training_data, optimizer, device, smoothing):
+def train_epoch(model_, training_data, optimizer, device, smoothing=False):
     ''' Epoch operation in training phase'''
 
     model_.train()
@@ -87,7 +87,7 @@ def train_epoch(model_, training_data, optimizer, device, smoothing):
             desc='  - (Training)   ', leave=False):
 
         # prepare data
-        src_seq, src_pos, tgt, src_fixed_feats = map(lambda x: x.to(device), batch)
+        src_seq, src_pos, gold, src_fixed_feats = map(lambda x: x.to(device), batch)
 
         # forward
         optimizer.zero_grad()
@@ -96,7 +96,7 @@ def train_epoch(model_, training_data, optimizer, device, smoothing):
         
         
         # backward
-        loss, n_correct = cal_performance(pred, gold, smoothing=smoothing)
+        loss = cal_loss(pred, gold, smoothing=smoothing)
         loss.backward()
 
         # update parameters
