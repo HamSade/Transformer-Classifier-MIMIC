@@ -18,19 +18,29 @@ from kk_mimic_dataset import loader
 from Trasformer_classifier import model
 
 #%%
-def cal_performance(pred, gold, smoothing=False):
-    ''' Apply label smoothing if needed '''
+#def cal_performance(pred, gold, smoothing=False):
+#    ''' Apply label smoothing if needed '''
+#
+#    loss = cal_loss(pred, gold, smoothing)
+#
+#    pred = pred.max(1)[1]
+#    gold = gold.contiguous().view(-1)
+#    non_pad_mask = gold.ne(Constants.PAD)
+#    n_correct = pred.eq(gold)
+#    n_correct = n_correct.masked_select(non_pad_mask).sum().item()
+#
+#    return loss, n_correct
 
-    loss = cal_loss(pred, gold, smoothing)
+
+#%%
+def cal_AUC(pred, gold):
 
     pred = pred.max(1)[1]
     gold = gold.contiguous().view(-1)
-    non_pad_mask = gold.ne(Constants.PAD)
     n_correct = pred.eq(gold)
     n_correct = n_correct.masked_select(non_pad_mask).sum().item()
-
-    return loss, n_correct
-
+        
+    
 #%%
 def cal_loss(pred, gold, smoothing):
     ''' Calculate cross entropy loss, apply label smoothing if needed. '''
@@ -53,9 +63,7 @@ def cal_loss(pred, gold, smoothing):
 
     return loss
 
-#%%
-def cal_AUC(pred, gold):
-    
+
     
     
 #%%
