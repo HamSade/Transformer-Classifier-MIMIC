@@ -113,7 +113,7 @@ def eval_epoch(model_, validation_data, device):
     total_loss = 0
     pred = []
     gold = []
-    n_sec_total = 0
+    n_seq_total = 0
     
     with torch.no_grad():
         for batch in tqdm(
@@ -131,9 +131,9 @@ def eval_epoch(model_, validation_data, device):
             total_loss += loss.item()
             pred.append(pred_)
             gold.append(gold_)
-            n_sec_total += 1
+            n_seq_total += 1
 
-    total_loss = total_loss/n_sec_total
+    total_loss = total_loss/n_seq_total
     auc.add(pred, gold)
     auc_ = auc.value()
     
