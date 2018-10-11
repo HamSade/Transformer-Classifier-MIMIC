@@ -79,8 +79,6 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
     model_.train()
 
     total_loss = 0
-    n_word_total = 0
-    n_word_correct = 0
 
     for batch in tqdm(
             training_data, mininterval=2,
@@ -92,9 +90,8 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
         # forward
         optimizer.zero_grad()
 #        pred = model_(src_seq, src_pos, tgt_seq, tgt_pos)
-        pred, self_attn_mat = model_(src_seq, src_pos) #TODO
-        
-        
+        pred, self_attn_mat = model_(src_seq, src_pos)
+            
         # backward
         loss = cal_loss(pred, gold, smoothing=smoothing)
         loss.backward()
@@ -105,14 +102,7 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
         # note keeping
         total_loss += loss.item()
 
-        non_pad_mask = gold.ne(Constants.PAD)
-        n_word = non_pad_mask.sum().item()
-        n_word_total += n_word
-        n_word_correct += n_correct
-
-    loss_per_word = total_loss/n_word_total
-    accuracy = n_word_correct/n_word_total
-    return loss_per_word, accuracy
+    return total_loss, self_attn_mat
 
 #%%
 def eval_epoch(model_, validation_data, device):
@@ -121,33 +111,33 @@ def eval_epoch(model_, validation_data, device):
     model_.eval()
 
     total_loss = 0
-    n_word_total = 0
-    n_word_correct = 0
-
+    pred = []
+    gold = []
+    n_sec_total = 0
+    
     with torch.no_grad():
         for batch in tqdm(
                 validation_data, mininterval=2,
                 desc='  - (Validation) ', leave=False):
 
             # prepare data
-            src_seq, src_pos, tgt_seq, tgt_pos = map(lambda x: x.to(device), batch)
-            gold = tgt_seq[:, 1:]
+            src_seq, src_pos, gold_, src_fixed_feats = map(lambda x: x.to(device), batch)
 
             # forward
-            pred = model_(src_seq, src_pos, tgt_seq, tgt_pos)
-            loss, n_correct = cal_performance(pred, gold, smoothing=False)
+            pred_, self_attn_mat = model_(src_seq, src_pos)
+            loss = cal_loss(pred_, gold_, smoothing=False)  #Smoothing is only in teh trainig phase
 
             # note keeping
             total_loss += loss.item()
+            pred.append(pred_)
+            gold.append(gold_)
+            n_sec_total += 1
 
-            non_pad_mask = gold.ne(Constants.PAD)
-            n_word = non_pad_mask.sum().item()
-            n_word_total += n_word
-            n_word_correct += n_correct
-
-    loss_per_word = total_loss/n_word_total
-    accuracy = n_word_correct/n_word_total
-    return loss_per_word, accuracy
+    total_loss = total_loss/n_sec_total
+    auc.add(pred, gold)
+    auc_ = auc.value()
+    
+    return total_loss, auc_
 
 #%%
 def train(model_, training_data, validation_data, optimizer, device, opt):
