@@ -16,6 +16,29 @@ from transformer.Optim import ScheduledOptim
 
 from kk_mimic_dataset import loader
 from Trasformer_classifier import model
+from AUCMeter import AUCMeter
+
+
+#%%
+def cal_loss(pred, gold):#, smoothing):
+    ''' Calculate cross entropy loss, apply label smoothing if needed. '''
+
+    gold = gold.view(-1)
+#    if smoothing:
+#        eps = 0.1
+#        n_class = pred.size(1)
+#
+#        one_hot = torch.zeros_like(pred).scatter(1, gold.view(-1, 1), 1)
+#        one_hot = one_hot * (1 - eps) + (1 - one_hot) * eps / (n_class - 1)
+#        log_prb = F.log_softmax(pred, dim=1)
+#
+#        non_pad_mask = gold.ne(Constants.PAD)
+#        loss = -(one_hot * log_prb).sum(dim=1)
+#        loss = loss.masked_select(non_pad_mask).sum()  # average later
+#    else:
+    loss = F.cross_entropy(pred, gold, reduction='sum')#ignore_index=Constants.PAD, )
+
+    return loss
 
 #%%
 #def cal_performance(pred, gold, smoothing=False):
@@ -31,46 +54,29 @@ from Trasformer_classifier import model
 #
 #    return loss, n_correct
 
+#%% AUC calculation
 
-#%%
-def cal_AUC(pred, gold):
-
-    pred = pred.max(1)[1]
-    gold = gold.contiguous().view(-1)
-    n_correct = pred.eq(gold)
-    n_correct = n_correct.masked_select(non_pad_mask).sum().item()
+auc = AUCMeter()
+class cal_AUC():
+    
+    def __init__(self, pred, gold):
+        self.auc = auc
+        pred = pred.max(1)[1]
+        gold = gold.contiguous().view(-1)
         
+        auc.add(pred, gold)
+    
+    def reset(self):
+        auc.reset()
+     
+    def __call__(self):
+        return auc.value()[0] # Only AUC   
     
 #%%
-def cal_loss(pred, gold, smoothing):
-    ''' Calculate cross entropy loss, apply label smoothing if needed. '''
-
-    gold = gold.view(-1)
-
-    if smoothing:
-        eps = 0.1
-        n_class = pred.size(1)
-
-        one_hot = torch.zeros_like(pred).scatter(1, gold.view(-1, 1), 1)
-        one_hot = one_hot * (1 - eps) + (1 - one_hot) * eps / (n_class - 1)
-        log_prb = F.log_softmax(pred, dim=1)
-
-        non_pad_mask = gold.ne(Constants.PAD)
-        loss = -(one_hot * log_prb).sum(dim=1)
-        loss = loss.masked_select(non_pad_mask).sum()  # average later
-    else:
-        loss = F.cross_entropy(pred, gold, ignore_index=Constants.PAD, reduction='sum')
-
-    return loss
-
-
-    
-    
-#%%
-def train_epoch(model, training_data, optimizer, device, smoothing):
+def train_epoch(model_, training_data, optimizer, device, smoothing):
     ''' Epoch operation in training phase'''
 
-    model.train()
+    model_.train()
 
     total_loss = 0
     n_word_total = 0
@@ -81,13 +87,14 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
             desc='  - (Training)   ', leave=False):
 
         # prepare data
-        src_seq, src_pos, tgt_seq, tgt_pos = map(lambda x: x.to(device), batch)
-        gold = tgt_seq[:, 1:]
+        src_seq, tgt = map(lambda x: x.to(device), batch)
 
         # forward
         optimizer.zero_grad()
-        pred = model(src_seq, src_pos, tgt_seq, tgt_pos)
-
+#        pred = model_(src_seq, src_pos, tgt_seq, tgt_pos)
+        pred = model_(src_Seq, src_pos) #TODO src_pos = ?
+        
+        
         # backward
         loss, n_correct = cal_performance(pred, gold, smoothing=smoothing)
         loss.backward()
@@ -108,10 +115,10 @@ def train_epoch(model, training_data, optimizer, device, smoothing):
     return loss_per_word, accuracy
 
 #%%
-def eval_epoch(model, validation_data, device):
+def eval_epoch(model_, validation_data, device):
     ''' Epoch operation in evaluation phase '''
 
-    model.eval()
+    model_.eval()
 
     total_loss = 0
     n_word_total = 0
@@ -127,7 +134,7 @@ def eval_epoch(model, validation_data, device):
             gold = tgt_seq[:, 1:]
 
             # forward
-            pred = model(src_seq, src_pos, tgt_seq, tgt_pos)
+            pred = model_(src_seq, src_pos, tgt_seq, tgt_pos)
             loss, n_correct = cal_performance(pred, gold, smoothing=False)
 
             # note keeping
@@ -143,7 +150,7 @@ def eval_epoch(model, validation_data, device):
     return loss_per_word, accuracy
 
 #%%
-def train(model, training_data, validation_data, optimizer, device, opt):
+def train(model_, training_data, validation_data, optimizer, device, opt):
     ''' Start training '''
 
     log_train_file = None
@@ -166,14 +173,14 @@ def train(model, training_data, validation_data, optimizer, device, opt):
 
         start = time.time()
         train_loss, train_accu = train_epoch(
-            model, training_data, optimizer, device, smoothing=opt.label_smoothing)
+            model_, training_data, optimizer, device, smoothing=opt.label_smoothing)
         print('  - (Training)   ppl: {ppl: 8.5f}, accuracy: {accu:3.3f} %, '\
               'elapse: {elapse:3.3f} min'.format(
                   ppl=math.exp(min(train_loss, 100)), accu=100*train_accu,
                   elapse=(time.time()-start)/60))
 
         start = time.time()
-        valid_loss, valid_accu = eval_epoch(model, validation_data, device)
+        valid_loss, valid_accu = eval_epoch(model_, validation_data, device)
         print('  - (Validation) ppl: {ppl: 8.5f}, accuracy: {accu:3.3f} %, '\
                 'elapse: {elapse:3.3f} min'.format(
                     ppl=math.exp(min(valid_loss, 100)), accu=100*valid_accu,

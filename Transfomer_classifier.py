@@ -77,7 +77,7 @@ class model(nn.Module):
         x = self.FC1(x)
         x = self.FC2(x)
         x = self.FC3(x)
-        return self.softmax(x)  
+        return self.softmax(x), enc_slf_attn_list
         
         
         

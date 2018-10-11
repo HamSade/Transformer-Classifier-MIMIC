@@ -6,12 +6,12 @@ Created on Thu Oct 11 10:13:09 2018
 """
 
 import numbers
-from . import meter
+from . import Meter
 import numpy as np
 import torch
 
 
-class AUCMeter(meter.Meter):
+class AUCMeter(Meter.Meter):
     """
     The AUCMeter measures the area under the receiver-operating characteristic
     (ROC) curve for binary classification problems. The area under the curve (AUC)
@@ -22,7 +22,7 @@ class AUCMeter(meter.Meter):
     and `target`, where (1) the `output` contains model output scores that ought to
     be higher when the model is more convinced that the example should be positively
     labeled, and smaller when the model believes the example should be negatively
-    labeled (for instance, the output of a signoid function); and (2) the `target`
+    labeled (for instance, the output of a sigmoid function); and (2) the `target`
     contains only values 0 (for negative examples) and 1 (for positive examples).
     """
 
@@ -88,3 +88,8 @@ class AUCMeter(meter.Meter):
         area = (sum_h * tpr).sum() / 2.0
 
         return (area, tpr, fpr)
+        
+        
+        
+        
+        
