@@ -17,7 +17,7 @@ from transformer.Optim import ScheduledOptim
 from kk_mimic_dataset import loader
 from Trasformer_classifier import model
 from AUCMeter import AUCMeter
-
+from kk_mimic_dataset import kk_mimic_dataset
 
 #%%
 def cal_loss(pred, gold):#, smoothing):
@@ -229,9 +229,7 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
 #                 n_head=n_head, d_k=d_emb_vec//n_head,
 #                 d_v=d_emb_vec//n_head, d_model=d_emb_vec,
 #                 d_inner=d_inner, dropout=dropout):
-                     
-                     
-                     
+                                          
 def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
@@ -267,17 +265,20 @@ def main():
 
     #========= Loading Dataset =========#
     data = torch.load(opt.data)
-    opt.max_token_seq_len = data['settings'].max_token_seq_len
+#    opt.max_token_seq_len = data['settings'].max_token_seq_len
 
-    training_data, validation_data = prepare_dataloaders(data, opt)
-
-    opt.src_vocab_size = training_data.dataset.src_vocab_size
-    opt.tgt_vocab_size = training_data.dataset.tgt_vocab_size
+#    training_data, validation_data = prepare_dataloaders(data, opt)
+    training_data = kk_mimic_dataset(phase="train")
+    training_data = kk_mimic_dataset(phase="validation")
+    
+    
+#    opt.src_vocab_size = training_data.dataset.src_vocab_size
+#    opt.tgt_vocab_size = training_data.dataset.tgt_vocab_size
 
     #========= Preparing Model =========#
-    if opt.embs_share_weight:
-        assert training_data.dataset.src_word2idx == training_data.dataset.tgt_word2idx, \
-            'The src/tgt word2idx table are different but asked to share word embedding.'
+#    if opt.embs_share_weight:
+#        assert training_data.dataset.src_word2idx == training_data.dataset.tgt_word2idx, \
+#            'The src/tgt word2idx table are different but asked to share word embedding.'
 
     print(opt)
 
