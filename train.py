@@ -242,12 +242,12 @@ def main():
 
     parser.add_argument('-d_src_vec', type=int, default=1440)
 #    parser.add_argument('-d_model', type=int, default=512)
-    parser.add_argument('-d_emb_vec', type=int, default=2048)
-    parser.add_argument('-d_k', type=int, default=64)
-    parser.add_argument('-d_v', type=int, default=64)
+    parser.add_argument('-d_emb_vec', type=int, default=304)
+    parser.add_argument('-d_k', type=int, default=304/8)
+    parser.add_argument('-d_v', type=int, default=304/8)
 
     parser.add_argument('-n_head', type=int, default=8)
-    parser.add_argument('-n_layers', type=int, default=6)
+    parser.add_argument('-n_layers', type=int, default=3)  #TODO what if n_layer=6
     parser.add_argument('-n_warmup_steps', type=int, default=4000)
 
     parser.add_argument('-dropout', type=float, default=0.1)
