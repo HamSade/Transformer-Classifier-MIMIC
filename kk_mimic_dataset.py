@@ -7,20 +7,25 @@ Created on Fri Oct  5 10:40:35 2018
 
 import torch
 from torch.utils import data
-#import numpy as np
+import numpy as np
 import sklearn.datasets as datasets
 #import matplotlib.pyplot as plt
 
 
 class kk_mimic_dataset(data.Dataset):
     
-    def __init__(self, training=True):
-        if training: 
+    def __init__(self, phase="train"):
+        if phase == "train": 
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
+            data = datasets.load_svmlight_file(data_path)
         else:
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
-            
-        data = datasets.load_svmlight_file(data_path)
+            data = datasets.load_svmlight_file(data_path)
+            if  phase == "validation":
+                data = data[:len(data)/10]  #TODO 10% for validation
+            else:            
+                data = data[len(data)/10:]  #TODO 90% for test
+        
         self.features = data[0].todense()
         self.labels = data[1]
         
@@ -35,12 +40,11 @@ class kk_mimic_dataset(data.Dataset):
         
     def __getitem__(self, index):
         
-        src_seq = temporal_features[index]
+        src_seq = self.temporal_features[index]
         src_fixed_feats = self.fixed_features[index]
-        tgt = self.labels[index]
+        gold = self.labels[index]
         
-        src_pos = np.array([
-            [pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <--- pos_i + 1 
+        src_pos = np.array([pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <--- pos_i + 1 
     
         src_seq = torch.LongTensor(src_seq)
         src_pos = torch.LongTensor(src_pos)
