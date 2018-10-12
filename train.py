@@ -18,6 +18,7 @@ from kk_mimic_dataset import loader
 from Trasformer_classifier import model
 from AUCMeter import AUCMeter
 from kk_mimic_dataset import kk_mimic_dataset
+from Transformer_classifier import model
 
 #%%
 def cal_loss(pred, gold):#, smoothing):
@@ -239,7 +240,7 @@ def main():
     parser.add_argument('-batch_size', type=int, default=64)
 
     parser.add_argument('-d_src_vec', type=int, default=1440)
-#    parser.add_argument('-d_model', type=int, default=512)
+    parser.add_argument('-len_max_seq', type=int, default=10)
     parser.add_argument('-d_emb_vec', type=int, default=304)
     parser.add_argument('-d_k', type=int, default=304/8)
     parser.add_argument('-d_v', type=int, default=304/8)
@@ -283,28 +284,36 @@ def main():
     print(opt)
 
     device = torch.device('cuda' if opt.cuda else 'cpu')
-    transformer = Transformer(
-        opt.src_vocab_size,
-        opt.tgt_vocab_size,
-        opt.max_token_seq_len,
-        tgt_emb_prj_weight_sharing=opt.proj_share_weight,
-        emb_src_tgt_weight_sharing=opt.embs_share_weight,
-        d_k=opt.d_k,
-        d_v=opt.d_v,
-        d_model=opt.d_model,
-        d_word_vec=opt.d_word_vec,
-        d_inner=opt.d_inner_hid,
-        n_layers=opt.n_layers,
-        n_head=opt.n_head,
-        dropout=opt.dropout).to(device)
+    model_ = model(d_src_vec=opt.d_src_vec,            
+                 len_max_seq=opt.len_max_seq,
+                 d_emb_vec=opt.d_emb_vec,
+                 n_layers = opt.n_layers,
+                 n_head=opt.n_head, d_k=opt.d_emb_vec//opt.n_head,
+                 d_v=opt.d_emb_vec//opt.n_head, d_model=d_emb_vec,
+                 d_inner=d_inner, dropout=dropout)
+                 
+#    transformer = Transformer(
+#        opt.src_vocab_size,
+#        opt.tgt_vocab_size,
+#        opt.max_token_seq_len,
+#        tgt_emb_prj_weight_sharing=opt.proj_share_weight,
+#        emb_src_tgt_weight_sharing=opt.embs_share_weight,
+#        d_k=opt.d_k,
+#        d_v=opt.d_v,
+#        d_model=opt.d_model,
+#        d_word_vec=opt.d_word_vec,
+#        d_inner=opt.d_inner_hid,
+#        n_layers=opt.n_layers,
+#        n_head=opt.n_head,
+#        dropout=opt.dropout).to(device)
 
     optimizer = ScheduledOptim(
         optim.Adam(
-            filter(lambda x: x.requires_grad, transformer.parameters()),
+            filter(lambda x: x.requires_grad, model_.parameters()),
             betas=(0.9, 0.98), eps=1e-09),
         opt.d_model, opt.n_warmup_steps)
 
-    train(transformer, training_data, validation_data, optimizer, device ,opt)
+    train(model_, training_data, validation_data, optimizer, device ,opt)
 
 #%%
 #def prepare_dataloaders(data, opt):
