@@ -171,18 +171,18 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
         print('[ Epoch', epoch_i, ']')
 
         start = time.time()
-        train_loss, train_auc_ = train_epoch(
+        train_loss_, train_auc_ = train_epoch(
             model_, training_data, optimizer, device, smoothing=opt.label_smoothing)
         print('  - (Training)   ppl: {ppl: 8.5f}, AUC: {AUC:3.3f} %, '\
               'elapse: {elapse:3.3f} min'.format(
-                  ppl=math.exp(min(train_loss, 100)), accu=100*train_auc_,
+                  ppl=math.exp(min(train_loss_, 100)), accu=100*train_auc_,
                   elapse=(time.time()-start)/60))
 
         start = time.time()
-        valid_loss, valid_auc_ = eval_epoch(model_, validation_data, device)
+        valid_loss_, valid_auc_ = eval_epoch(model_, validation_data, device)
         print('  - (Validation) ppl: {ppl: 8.5f}, AUC: {AUC:3.3f} %, '\
                 'elapse: {elapse:3.3f} min'.format(
-                    ppl=math.exp(min(valid_loss, 100)), auc=100*valid_auc_,
+                    ppl=math.exp(min(valid_loss_, 100)), auc=100*valid_auc_,
                     elapse=(time.time()-start)/60))
 
         valid_auc += [valid_auc_]
@@ -206,11 +206,11 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
         if log_train_file and log_valid_file:
             with open(log_train_file, 'a') as log_tf, open(log_valid_file, 'a') as log_vf:
                 log_tf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{accu:3.3f}\n'.format(
-                    epoch=epoch_i, loss=train_loss,
-                    ppl=math.exp(min(train_loss, 100)), accu=100*train_auc))
+                    epoch=epoch_i, loss=train_loss_,
+                    ppl=math.exp(min(train_loss_, 100)), accu=100*train_auc_))
                 log_vf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{accu:3.3f}\n'.format(
-                    epoch=epoch_i, loss=valid_loss,
-                    ppl=math.exp(min(valid_loss, 100)), accu=100*valid_accu))
+                    epoch=epoch_i, loss=valid_loss_,
+                    ppl=math.exp(min(valid_loss_, 100)), accu=100*valid_auc_))
 
 
 #%%
@@ -219,7 +219,6 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-data', required=True)
-
     parser.add_argument('-epoch', type=int, default=10)
     parser.add_argument('-batch_size', type=int, default=64)
 
