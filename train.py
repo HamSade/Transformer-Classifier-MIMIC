@@ -214,6 +214,24 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
 
 
 #%%
+#    d_src_vec = 1440
+#    d_emb_vec = 304
+#    len_max_seq = 10
+#    n_layers=3
+#    n_head = 8
+#    dropout = 0.1
+#    d_inner = 2048
+#        
+#    def __init__(self, d_src_vec=d_inner,            
+#                 len_max_seq=len_max_seq,
+#                 d_emb_vec=d_emb_vec,
+#                 n_layers = n_layers,
+#                 n_head=n_head, d_k=d_emb_vec//n_head,
+#                 d_v=d_emb_vec//n_head, d_model=d_emb_vec,
+#                 d_inner=d_inner, dropout=dropout):
+                     
+                     
+                     
 def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
@@ -222,9 +240,9 @@ def main():
     parser.add_argument('-epoch', type=int, default=10)
     parser.add_argument('-batch_size', type=int, default=64)
 
-    #parser.add_argument('-d_word_vec', type=int, default=512)
-    parser.add_argument('-d_model', type=int, default=512)
-    parser.add_argument('-d_inner_hid', type=int, default=2048)
+    parser.add_argument('-d_src_vec', type=int, default=1440)
+#    parser.add_argument('-d_model', type=int, default=512)
+    parser.add_argument('-d_emb_vec', type=int, default=2048)
     parser.add_argument('-d_k', type=int, default=64)
     parser.add_argument('-d_v', type=int, default=64)
 
