@@ -143,8 +143,8 @@ def eval_epoch(model_, validation_data, device):
 def train(model_, training_data, validation_data, optimizer, device, opt):
     ''' Start training '''
 
-    log_train_file = None
-    log_valid_file = None
+    log_train_file = "./log/traing.log"
+    log_valid_file = "./log/evaluation.log"
 
     if opt.log:
         log_train_file = opt.log + '.train.log'
