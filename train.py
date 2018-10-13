@@ -244,9 +244,10 @@ def main():
     parser.add_argument('-d_emb_vec', type=int, default=304)
     parser.add_argument('-d_k', type=int, default=304/8)
     parser.add_argument('-d_v', type=int, default=304/8)
+    parser.add_argument('-d_inner', type=int, default=2048) #TODO 304/512.*2048=1216.0
 
     parser.add_argument('-n_head', type=int, default=8)
-    parser.add_argument('-n_layers', type=int, default=3)  #TODO what if n_layer=6
+    parser.add_argument('-n_layers', type=int, default=3)  #TODO n_layer=6?
     parser.add_argument('-n_warmup_steps', type=int, default=4000)
 
     parser.add_argument('-dropout', type=float, default=0.1)
@@ -265,12 +266,12 @@ def main():
     opt.d_word_vec = opt.d_model
 
     #========= Loading Dataset =========#
-    data = torch.load(opt.data)
+    data = torch.load(opt.data) #TODO only used for next line, why should we?
 #    opt.max_token_seq_len = data['settings'].max_token_seq_len
 
 #    training_data, validation_data = prepare_dataloaders(data, opt)
     training_data = kk_mimic_dataset(phase="train")
-    training_data = kk_mimic_dataset(phase="validation")
+    validation_data = kk_mimic_dataset(phase="validation")
     
     
 #    opt.src_vocab_size = training_data.dataset.src_vocab_size
@@ -289,23 +290,8 @@ def main():
                  d_emb_vec=opt.d_emb_vec,
                  n_layers = opt.n_layers,
                  n_head=opt.n_head, d_k=opt.d_emb_vec//opt.n_head,
-                 d_v=opt.d_emb_vec//opt.n_head, d_model=d_emb_vec,
-                 d_inner=d_inner, dropout=dropout)
-                 
-#    transformer = Transformer(
-#        opt.src_vocab_size,
-#        opt.tgt_vocab_size,
-#        opt.max_token_seq_len,
-#        tgt_emb_prj_weight_sharing=opt.proj_share_weight,
-#        emb_src_tgt_weight_sharing=opt.embs_share_weight,
-#        d_k=opt.d_k,
-#        d_v=opt.d_v,
-#        d_model=opt.d_model,
-#        d_word_vec=opt.d_word_vec,
-#        d_inner=opt.d_inner_hid,
-#        n_layers=opt.n_layers,
-#        n_head=opt.n_head,
-#        dropout=opt.dropout).to(device)
+                 d_v=opt.d_emb_vec//opt.n_head, d_model=opt.d_emb_vec,
+                 d_inner=opt.d_inner, dropout=opt.dropout)
 
     optimizer = ScheduledOptim(
         optim.Adam(
@@ -316,30 +302,5 @@ def main():
     train(model_, training_data, validation_data, optimizer, device ,opt)
 
 #%%
-#def prepare_dataloaders(data, opt):
-#    # ========= Preparing DataLoader =========#
-#    train_loader = torch.utils.data.DataLoader(
-#        TranslationDataset(
-#            src_word2idx=data['dict']['src'],
-#            tgt_word2idx=data['dict']['tgt'],
-#            src_insts=data['train']['src'],
-#            tgt_insts=data['train']['tgt']),
-#        num_workers=2,
-#        batch_size=opt.batch_size,
-#        collate_fn=paired_collate_fn,
-#        shuffle=True)
-#
-#    valid_loader = torch.utils.data.DataLoader(
-#        TranslationDataset(
-#            src_word2idx=data['dict']['src'],
-#            tgt_word2idx=data['dict']['tgt'],
-#            src_insts=data['valid']['src'],
-#            tgt_insts=data['valid']['tgt']),
-#        num_workers=2,
-#        batch_size=opt.batch_size,
-#        collate_fn=paired_collate_fn)
-#    return train_loader, valid_loader
-
-
 if __name__ == '__main__':
     main()
