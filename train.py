@@ -248,7 +248,7 @@ def main():
 
     opt = parser.parse_args()
     opt.cuda = not opt.no_cuda
-    opt.d_word_vec = opt.d_emb_vec  #TODO check. not sure!
+#    opt.d_word_vec = opt.d_emb_vec  #TODO check. not sure!
 
     #========= Loading Dataset =========#
 #    data = torch.load(opt.data) #TODO only used for next line, why should we?
@@ -257,17 +257,16 @@ def main():
 #    training_data, validation_data = prepare_dataloaders(data, opt)
     training_data = loader(kk_mimic_dataset(phase="train"), batch_size=64)
     validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=64)
-    
-    
+        
 #    opt.src_vocab_size = training_data.dataset.src_vocab_size
 #    opt.tgt_vocab_size = training_data.dataset.tgt_vocab_size
 
-    #========= Preparing Model =========#
+    #%%========= Preparing Model =========#
 #    if opt.embs_share_weight:
 #        assert training_data.dataset.src_word2idx == training_data.dataset.tgt_word2idx, \
 #            'The src/tgt word2idx table are different but asked to share word embedding.'
 
-    print(opt)
+    print('opt = ', opt)
 
     device = torch.device('cuda' if opt.cuda else 'cpu')
     model_ = model(d_src_vec=opt.d_src_vec,            
@@ -282,7 +281,7 @@ def main():
         optim.Adam(
             filter(lambda x: x.requires_grad, model_.parameters()),
             betas=(0.9, 0.98), eps=1e-09),
-        opt.d_model, opt.n_warmup_steps)
+        opt.d_emb_vec, opt.n_warmup_steps) #TODO check opt.d_emb_vec is actually correct
 
     train(model_, training_data, validation_data, optimizer, device ,opt)
 

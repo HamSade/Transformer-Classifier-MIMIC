@@ -49,6 +49,7 @@ class model(nn.Module):
                  d_v=d_emb_vec//n_head, d_model=d_emb_vec,
                  d_inner=d_inner, dropout=dropout):
         
+        super(model, self).__init__()
         self.d_src_vec = d_src_vec
         self.d_emb_vec = d_emb_vec
         self.len_max_seq = len_max_seq
@@ -60,9 +61,9 @@ class model(nn.Module):
         self.ffn = ffn_compressed(d_in=self.d_src_vec, d_hid=self.d_inner,
                                   d_out=self.d_emb_vec)
         
-        self.encoder = Encoder(len_max_seq=self.len_max_seq, d_word_vec=self.d_word_vec,
+        self.encoder = Encoder(len_max_seq=self.len_max_seq, d_word_vec=self.d_emb_vec,
             n_layers=self.n_layers, n_head=self.n_head, d_k=self.d_src_vec//self.n_head,
-            d_v=self.d_src_vec//self.n_head, d_model=self.d_word_vec, d_inner=self.d_inner,
+            d_v=self.d_src_vec//self.n_head, d_model=self.d_emb_vec, d_inner=self.d_inner,
             dropout=self.dropout)
 
 #        self.average_pooling()

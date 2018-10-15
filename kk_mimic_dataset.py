@@ -30,8 +30,6 @@ class kk_mimic_dataset(data.Dataset):
             else:            
                 data = [ data[0][data[1].shape[0]//10:], data[1][data[1].shape[0]//10:] ]  #TODO 90% for test
                 
-                
-        print('data shape = ', np.shape(data))
         print('data[0] shape = ', np.shape(data[0]))
         print('data[1] shape = ', np.shape(data[1]))
         
