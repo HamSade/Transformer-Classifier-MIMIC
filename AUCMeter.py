@@ -6,7 +6,7 @@ Created on Thu Oct 11 10:13:09 2018
 """
 
 import numbers
-from . import Meter
+import Meter
 import numpy as np
 import torch
 

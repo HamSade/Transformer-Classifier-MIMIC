@@ -2,13 +2,14 @@
 """
 Created on Fri Oct  5 10:40:35 2018
 
-@author: hamed
+@author: hamed 
 """
 
 import torch
 from torch.utils import data
 import numpy as np
-import sklearn.datasets as datasets
+#import sklearn
+from sklearn import datasets
 #import matplotlib.pyplot as plt
 
 
@@ -20,11 +21,19 @@ class kk_mimic_dataset(data.Dataset):
             data = datasets.load_svmlight_file(data_path)
         else:
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
-            data = datasets.load_svmlight_file(data_path)
+            data = np.array(datasets.load_svmlight_file(data_path))
+    
+            
             if  phase == "validation":
-                data = data[:len(data)/10]  #TODO 10% for validation
+#                print("np.shape(data[1]) = ", np.shape(data[1])[0]//10)
+                data = [ data[0][:data[1].shape[0]//10], data[1][:data[1].shape[0]//10] ]  #TODO 10% for validation
             else:            
-                data = data[len(data)/10:]  #TODO 90% for test
+                data = [ data[0][data[1].shape[0]//10:], data[1][data[1].shape[0]//10:] ]  #TODO 90% for test
+                
+                
+        print('data shape = ', np.shape(data))
+        print('data[0] shape = ', np.shape(data[0]))
+        print('data[1] shape = ', np.shape(data[1]))
         
         self.features = data[0].todense()
         self.labels = data[1]
@@ -33,7 +42,7 @@ class kk_mimic_dataset(data.Dataset):
         self.temporal_features = self.features[:,:14400]
         self.fixed_features = self.features[:,14400:]                
         
-        print(self.features.shape)
+#        print("features shape = ", self.features.shape)
         
     def __len__(self):
         return self.labels.shape[0]

@@ -15,7 +15,7 @@ from transformer.Optim import ScheduledOptim
 
 
 from kk_mimic_dataset import loader
-from Trasformer_classifier import model
+from Transformer_classifier import model
 from AUCMeter import AUCMeter
 from kk_mimic_dataset import kk_mimic_dataset
 from Transformer_classifier import model
@@ -220,7 +220,7 @@ def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-data', required=True)
+#    parser.add_argument('-data', required=True)
     parser.add_argument('-epoch', type=int, default=10)
     parser.add_argument('-batch_size', type=int, default=64)
 
@@ -248,10 +248,10 @@ def main():
 
     opt = parser.parse_args()
     opt.cuda = not opt.no_cuda
-    opt.d_word_vec = opt.d_model
+    opt.d_word_vec = opt.d_emb_vec  #TODO check. not sure!
 
     #========= Loading Dataset =========#
-    data = torch.load(opt.data) #TODO only used for next line, why should we?
+#    data = torch.load(opt.data) #TODO only used for next line, why should we?
 #    opt.max_token_seq_len = data['settings'].max_token_seq_len
 
 #    training_data, validation_data = prepare_dataloaders(data, opt)

@@ -16,7 +16,7 @@ class ffn_compressed(nn.Module):
     ''' A two-feed-forward-layer module '''
 
     def __init__(self, d_in, d_hid, d_out, dropout=0.1):
-        super().__init__()
+        super(ffn_compressed, self).__init__()
         self.w_1 = nn.Conv1d(d_in, d_hid, 1) # position-wise
         self.w_2 = nn.Conv1d(d_hid, d_out, 1) # position-wise
         self.layer_norm = nn.LayerNorm(d_out)
