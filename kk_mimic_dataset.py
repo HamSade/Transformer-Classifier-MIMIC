@@ -55,7 +55,7 @@ class kk_mimic_dataset(data.Dataset):
     
 #%% Data loader
         
-def loader(dataset, training=True, batch_size=64, shuffle=True, num_workers=1):
+def loader(dataset, batch_size=64, shuffle=True, num_workers=1):
     params = {'batch_size': batch_size, 'shuffle': shuffle, 'num_workers':num_workers}
     return data.DataLoader(dataset, **params)
                 

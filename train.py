@@ -215,22 +215,7 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
 
 
 #%%
-#    d_src_vec = 1440
-#    d_emb_vec = 304
-#    len_max_seq = 10
-#    n_layers=3
-#    n_head = 8
-#    dropout = 0.1
-#    d_inner = 2048
-#        
-#    def __init__(self, d_src_vec=d_inner,            
-#                 len_max_seq=len_max_seq,
-#                 d_emb_vec=d_emb_vec,
-#                 n_layers = n_layers,
-#                 n_head=n_head, d_k=d_emb_vec//n_head,
-#                 d_v=d_emb_vec//n_head, d_model=d_emb_vec,
-#                 d_inner=d_inner, dropout=dropout):
-                                          
+                                       
 def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
@@ -270,8 +255,8 @@ def main():
 #    opt.max_token_seq_len = data['settings'].max_token_seq_len
 
 #    training_data, validation_data = prepare_dataloaders(data, opt)
-    training_data = kk_mimic_dataset(phase="train")
-    validation_data = kk_mimic_dataset(phase="validation")
+    training_data = loader(kk_mimic_dataset(phase="train"), batch_size=64)
+    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=64)
     
     
 #    opt.src_vocab_size = training_data.dataset.src_vocab_size
