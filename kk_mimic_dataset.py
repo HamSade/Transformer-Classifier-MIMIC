@@ -15,7 +15,7 @@ from sklearn import datasets
 
 class kk_mimic_dataset(data.Dataset):
     
-    def __init__(self, phase="train"):
+    def __init__(self, phase="train", seq_len=10):
         if phase == "train": 
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
             data = datasets.load_svmlight_file(data_path)
@@ -33,11 +33,12 @@ class kk_mimic_dataset(data.Dataset):
         print('data[0] shape = ', np.shape(data[0]))
         print('data[1] shape = ', np.shape(data[1]))
         
+        self.seq_len = seq_len
         self.features = data[0].todense()
         self.labels = data[1]
         
         # Removing last irrelevant features
-        self.temporal_features = self.features[:,:14400]
+        self.temporal_features = np.split(self.features[:,:14400], self.seq_len, axis=-1)     #Should be converted to a sequence
         self.fixed_features = self.features[:,14400:]                
         
 #        print("features shape = ", self.features.shape)
@@ -53,26 +54,29 @@ class kk_mimic_dataset(data.Dataset):
         
         src_pos = np.array([pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <--- pos_i + 1 
     
-        src_seq = torch.LongTensor(src_seq)
-        src_pos = torch.LongTensor(src_pos)
+        src_seq = torch.FloatTensor(src_seq)
+        src_pos = torch.FloatTensor(src_pos)
+        gold = torch.FloatTensor([gold])
+        src_fixed_feats = torch.FloatTensor(src_fixed_feats)
         
         return src_seq, src_pos, gold, src_fixed_feats
     
+
+#%%
+#def collate_fn_temp(x):
     
     
 #%% Data loader
         
 def loader(dataset, batch_size=64, shuffle=True, num_workers=1):
     params = {'batch_size': batch_size, 'shuffle': shuffle, 'num_workers':num_workers}
-    return data.DataLoader(dataset, **params)
+    return data.DataLoader(dataset, **params) #, collate_fn=collate_fn_temp)
                 
 
 #%% Test dataloader
 
 #training_set = kk_mimic_dataset()
 #data_loader = loader(training_set)
-
-
 
 
 

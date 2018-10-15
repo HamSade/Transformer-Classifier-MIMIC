@@ -255,11 +255,9 @@ def main():
 #    opt.max_token_seq_len = data['settings'].max_token_seq_len
 
 #    training_data, validation_data = prepare_dataloaders(data, opt)
-    training_data = loader(kk_mimic_dataset(phase="train"), batch_size=64)
-    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=64)
+    training_data =   iter(loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1)) #TODO
+    validation_data = iter(loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size, num_workers=1)) #TODO
         
-#    opt.src_vocab_size = training_data.dataset.src_vocab_size
-#    opt.tgt_vocab_size = training_data.dataset.tgt_vocab_size
 
     #%%========= Preparing Model =========#
 #    if opt.embs_share_weight:
@@ -268,7 +266,9 @@ def main():
 
     print('opt = ', opt)
 
-    device = torch.device('cuda' if opt.cuda else 'cpu')
+#    device = torch.device('cuda' if opt.cuda else 'cpu')  #TODO
+    device = torch.device('cpu')
+    
     model_ = model(d_src_vec=opt.d_src_vec,            
                  len_max_seq=opt.len_max_seq,
                  d_emb_vec=opt.d_emb_vec,
