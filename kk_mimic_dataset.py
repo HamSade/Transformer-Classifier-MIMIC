@@ -16,6 +16,8 @@ from sklearn import datasets
 class kk_mimic_dataset(data.Dataset):
     
     def __init__(self, phase="train", seq_len=10):
+        
+        super(kk_mimic_dataset, self).__init__()
         if phase == "train": 
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
             data = datasets.load_svmlight_file(data_path)
@@ -42,7 +44,7 @@ class kk_mimic_dataset(data.Dataset):
 #        print("shape(self.features) = ",  self.features.shape)
         self.temporal_features = np.split(self.features[:,:self.d_feat], self.seq_len, axis=1)
         self.temporal_features = np.reshape(self.temporal_features, (-1,self.seq_len, self.d_feat//self.seq_len))
-        print("shape(self.temporal_features) = ",  self.temporal_features.shape)
+#        print("shape(self.temporal_features) = ",  self.temporal_features.shape)
         self.fixed_features = self.features[:,self.d_feat:]                
         
 #        print("features shape = ", self.features.shape)
@@ -55,17 +57,17 @@ class kk_mimic_dataset(data.Dataset):
         src_fixed_feats = self.fixed_features[index]
         gold = self.labels[index]
         
-        src_pos = np.array([pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <--- pos_i + 1 
+        src_pos = np.array([pos_i+1 for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <- pos_i + 1 ??!
     
         src_seq = torch.FloatTensor(src_seq)
-        src_pos = torch.FloatTensor(src_pos)
+        src_pos = torch.LongTensor(src_pos)
         gold = torch.FloatTensor([gold])
         src_fixed_feats = torch.FloatTensor(src_fixed_feats)
         
-        print("src_seq.shape = ", src_seq.shape)
-        print("src_pos.shape = ", src_pos.shape)
-        print("gold.shape = ", gold.shape)
-        print("src_fixed_feats.shape = ", src_fixed_feats.shape)
+#        print("src_seq.shape = ", src_seq.shape)
+#        print("src_pos.shape = ", src_pos.shape)
+#        print("gold.shape = ", gold.shape)
+#        print("src_fixed_feats.shape = ", src_fixed_feats.shape)
         
         return src_seq, src_pos, gold, src_fixed_feats
     

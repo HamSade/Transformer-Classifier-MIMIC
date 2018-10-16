@@ -21,7 +21,7 @@ from Transformer_classifier import model
 from AUCMeter import AUCMeter
 from kk_mimic_dataset import kk_mimic_dataset
 
-
+    
 #%%
 def cal_loss(pred, gold):#, smoothing):
     ''' Calculate cross entropy loss, apply label smoothing if needed. '''
@@ -222,15 +222,15 @@ def main():
     ''' Main function '''
     parser = argparse.ArgumentParser()
 
-#    parser.add_argument('-data', required=True)
+    parser.add_argument('-data', default='trained.chkpt', required=False)
     parser.add_argument('-epoch', type=int, default=10)
-    parser.add_argument('-batch_size', type=int, default=64)
+    parser.add_argument('-batch_size', type=int, default=4)
 
     parser.add_argument('-d_src_vec', type=int, default=1440)
     parser.add_argument('-len_seq', type=int, default=10)
     parser.add_argument('-d_emb_vec', type=int, default=304)
-    parser.add_argument('-d_k', type=int, default=304/8)
-    parser.add_argument('-d_v', type=int, default=304/8)
+    parser.add_argument('-d_k', type=int, default=304//8)
+    parser.add_argument('-d_v', type=int, default=304//8)
     parser.add_argument('-d_inner', type=int, default=2048) #TODO 304/512.*2048=1216.0
 
     parser.add_argument('-n_head', type=int, default=8)
@@ -250,6 +250,7 @@ def main():
 
     opt = parser.parse_args()
     opt.cuda = not opt.no_cuda
+    
 #    opt.d_word_vec = opt.d_emb_vec  #TODO check. not sure!
 
     #========= Loading Dataset =========#
@@ -257,8 +258,8 @@ def main():
 #    opt.max_token_seq_len = data['settings'].max_token_seq_len
 
 #    training_data, validation_data = prepare_dataloaders(data, opt)
-    training_data =   iter(loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1)) #TODO
-    validation_data = iter(loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size, num_workers=1)) #TODO
+    training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1) #TODO
+    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size, num_workers=1) #TODO
         
 
     #%%========= Preparing Model =========#
@@ -268,8 +269,11 @@ def main():
 
     print('opt = ', opt)
 
-#    device = torch.device('cuda' if opt.cuda else 'cpu')  #TODO
-    device = torch.device('cpu')
+    device = torch.device('cuda' if opt.cuda else 'cpu')  #TODO
+#    device = torch.device('cpu')
+    
+#    if opt.cuda:
+#        torch.cuda.set_device(device)
     
     model_ = model(d_src_vec=opt.d_src_vec,            
                  len_seq=opt.len_seq,
@@ -277,7 +281,7 @@ def main():
                  n_layers = opt.n_layers,
                  n_head=opt.n_head, d_k=opt.d_emb_vec//opt.n_head,
                  d_v=opt.d_emb_vec//opt.n_head, d_model=opt.d_emb_vec,
-                 d_inner=opt.d_inner, dropout=opt.dropout)
+                 d_inner=opt.d_inner, dropout=opt.dropout).cuda(device=device)    #TODO
 
     optimizer = ScheduledOptim(
         optim.Adam(

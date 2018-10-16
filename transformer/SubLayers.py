@@ -10,7 +10,7 @@ class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
     def __init__(self, n_head, d_model, d_k, d_v, dropout=0.1):
-        super().__init__()
+        super(MultiHeadAttention, self).__init__()
 
         self.n_head = n_head
         self.d_k = d_k
@@ -68,7 +68,7 @@ class PositionwiseFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''
 
     def __init__(self, d_in, d_hid, dropout=0.1):
-        super().__init__()
+        super(PositionwiseFeedForward, self).__init__()
         self.w_1 = nn.Conv1d(d_in, d_hid, 1) # position-wise
         self.w_2 = nn.Conv1d(d_hid, d_in, 1) # position-wise
         self.layer_norm = nn.LayerNorm(d_in)

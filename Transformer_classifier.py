@@ -22,7 +22,8 @@ class ffn_compressed(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        output = x.transpose(1, 2)
+        output = x.transpose(1, 2)  #TODO input is of dim 2??!
+        
         output = self.w_2(F.relu(self.w_1(output)))
         output = output.transpose(1, 2)
         output = self.dropout(output)
@@ -34,14 +35,14 @@ class model(nn.Module):
     
     d_src_vec = 1440
     d_emb_vec = 304
-    len_max_seq = 10
+    len_seq = 10
     n_layers=3
     n_head = 8
     dropout = 0.1
     d_inner = 2048
         
     def __init__(self, d_src_vec=d_inner,            
-                 len_seq=len_max_seq,
+                 len_seq=len_seq,
                  d_emb_vec=d_emb_vec,
                  n_layers = n_layers,
                  n_head=n_head, d_k=d_emb_vec//n_head,
@@ -51,7 +52,7 @@ class model(nn.Module):
         super(model, self).__init__()
         self.d_src_vec = d_src_vec
         self.d_emb_vec = d_emb_vec
-        self.len_max_seq = len_max_seq
+        self.len_seq = len_seq
         self.n_layers= n_layers
         self.n_head = n_head
         self.dropout = dropout
@@ -60,13 +61,13 @@ class model(nn.Module):
         self.ffn = ffn_compressed(d_in=self.d_src_vec, d_hid=self.d_inner,
                                   d_out=self.d_emb_vec)
         
-        self.encoder = Encoder(len_max_seq=self.len_max_seq, d_word_vec=self.d_emb_vec,
+        self.encoder = Encoder(len_seq=self.len_seq, d_word_vec=self.d_emb_vec,
             n_layers=self.n_layers, n_head=self.n_head, d_k=self.d_src_vec//self.n_head,
             d_v=self.d_src_vec//self.n_head, d_model=self.d_emb_vec, d_inner=self.d_inner,
             dropout=self.dropout)
 
 #        self.average_pooling()
-        self.FC1 = nn.Linear(512, 64)  
+        self.FC1 = nn.Linear(304, 64)   
         self.FC2 = nn.Linear(64, 8)
         self.FC3 = nn.Linear(8, 2)
         self.softmax = nn.Softmax(dim=-1)
