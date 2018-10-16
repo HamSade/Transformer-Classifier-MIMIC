@@ -5,7 +5,6 @@ Created on Tue Oct  9 16:46:24 2018
 @author: hamed
 """
 
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformer.Models import Encoder

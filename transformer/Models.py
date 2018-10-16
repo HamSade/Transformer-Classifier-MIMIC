@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import transformer.Constants as Constants
-from transformer.Layers import EncoderLayer, DecoderLayer
+from transformer.Layers import EncoderLayer#, DecoderLayer
 
 __author__ = "Yu-Hsiang Huang"
 
@@ -42,7 +42,8 @@ def get_attn_key_pad_mask(seq_k, seq_q):
     len_q = seq_q.size(1)
     padding_mask = seq_k.eq(Constants.PAD)
     padding_mask = padding_mask.unsqueeze(1).expand(-1, len_q, -1)  # b x lq x lk
-
+    padding_mask = padding_mask.unsqueeze(1).expand(-1, len_q, -1)
+    
     return padding_mask
 
 ##########################################################
@@ -52,7 +53,7 @@ def get_subsequent_mask(seq):
     sz_b, len_s = seq.size()
     subsequent_mask = torch.triu(  torch.ones((len_s, len_s), #takes a 2D matrix
                         device=seq.device, dtype=torch.uint8), diagonal=1)
-    subsequent_mask = subsequent_mask.unsqueeze(0).expand(sz_b, -1, -1)  # b x ls x ls  #.unsqueeze() embrace it another listy. expand extends it to all batches
+    subsequent_mask = subsequent_mask.unsqueeze(0).expand(sz_b, -1, -1)  # b x ls x ls  #.unsqueeze() embrace it another list. expand extends it to all batches
 
     return subsequent_mask
 
@@ -62,7 +63,7 @@ class Encoder(nn.Module):
 
     def __init__(
             self,
-            len_max_seq, d_word_vec,
+            len_seq, d_word_vec,
             n_layers, n_head, d_k, d_v,
             d_model, d_inner, dropout=0.1):
 
@@ -72,7 +73,7 @@ class Encoder(nn.Module):
 #        self.src_word_emb = nn.Embedding(
 #            n_src_vocab, d_word_vec, padding_idx=Constants.PAD)  #THis is not required for time series
                       
-        n_position = len_max_seq #+ 1  #Because of SOS. Not required for continuous inputs
+        n_position = len_seq #+ 1  #Because of SOS. Not required for continuous inputs
         self.position_enc = nn.Embedding.from_pretrained(
             get_sinusoid_encoding_table(n_position, d_word_vec, padding_idx=0), #padding index is for SOS
             freeze=True)  #Loading the table as a pretrained embedding. freeze=True makes sure it wiull not be updates and the same

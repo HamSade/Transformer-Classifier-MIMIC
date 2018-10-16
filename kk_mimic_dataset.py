@@ -30,16 +30,20 @@ class kk_mimic_dataset(data.Dataset):
             else:            
                 data = [ data[0][data[1].shape[0]//10:], data[1][data[1].shape[0]//10:] ]  #TODO 90% for test
                 
-        print('data[0] shape = ', np.shape(data[0]))
-        print('data[1] shape = ', np.shape(data[1]))
+#        print('data[0] shape = ', np.shape(data[0]))
+#        print('data[1] shape = ', np.shape(data[1]))
         
+        self.d_feat = 14400
         self.seq_len = seq_len
-        self.features = data[0].todense()
-        self.labels = data[1]
+        self.features = np.array(data[0].todense())
+        self.labels = np.array(data[1])
         
         # Removing last irrelevant features
-        self.temporal_features = np.split(self.features[:,:14400], self.seq_len, axis=-1)     #Should be converted to a sequence
-        self.fixed_features = self.features[:,14400:]                
+#        print("shape(self.features) = ",  self.features.shape)
+        self.temporal_features = np.split(self.features[:,:self.d_feat], self.seq_len, axis=1)
+        self.temporal_features = np.reshape(self.temporal_features, (-1,self.seq_len, self.d_feat//self.seq_len))
+        print("shape(self.temporal_features) = ",  self.temporal_features.shape)
+        self.fixed_features = self.features[:,self.d_feat:]                
         
 #        print("features shape = ", self.features.shape)
         
@@ -47,7 +51,6 @@ class kk_mimic_dataset(data.Dataset):
         return self.labels.shape[0]
         
     def __getitem__(self, index):
-        
         src_seq = self.temporal_features[index]
         src_fixed_feats = self.fixed_features[index]
         gold = self.labels[index]
@@ -56,8 +59,13 @@ class kk_mimic_dataset(data.Dataset):
     
         src_seq = torch.FloatTensor(src_seq)
         src_pos = torch.FloatTensor(src_pos)
-        gold = torch.FloatTensor([gold])
+#        gold = torch.FloatTensor(gold)
         src_fixed_feats = torch.FloatTensor(src_fixed_feats)
+        
+        print("src_seq.shape = ", src_seq.shape)
+        print("src_pos.shape", src_pos.shape)
+        print("gold.shape", gold.shape)
+        print("src_fixed_feats.shape", src_fixed_feats.shape)
         
         return src_seq, src_pos, gold, src_fixed_feats
     

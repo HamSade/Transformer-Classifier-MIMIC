@@ -7,6 +7,8 @@ import math
 import time
 
 from tqdm import tqdm
+import colored_traceback; colored_traceback.add_hook()
+
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
@@ -18,7 +20,7 @@ from kk_mimic_dataset import loader
 from Transformer_classifier import model
 from AUCMeter import AUCMeter
 from kk_mimic_dataset import kk_mimic_dataset
-from Transformer_classifier import model
+
 
 #%%
 def cal_loss(pred, gold):#, smoothing):
