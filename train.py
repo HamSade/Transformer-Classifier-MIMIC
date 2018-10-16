@@ -227,7 +227,7 @@ def main():
     parser.add_argument('-batch_size', type=int, default=64)
 
     parser.add_argument('-d_src_vec', type=int, default=1440)
-    parser.add_argument('-len_max_seq', type=int, default=10)
+    parser.add_argument('-len_seq', type=int, default=10)
     parser.add_argument('-d_emb_vec', type=int, default=304)
     parser.add_argument('-d_k', type=int, default=304/8)
     parser.add_argument('-d_v', type=int, default=304/8)
@@ -272,7 +272,7 @@ def main():
     device = torch.device('cpu')
     
     model_ = model(d_src_vec=opt.d_src_vec,            
-                 len_max_seq=opt.len_max_seq,
+                 len_seq=opt.len_seq,
                  d_emb_vec=opt.d_emb_vec,
                  n_layers = opt.n_layers,
                  n_head=opt.n_head, d_k=opt.d_emb_vec//opt.n_head,

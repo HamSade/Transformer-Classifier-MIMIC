@@ -59,13 +59,13 @@ class kk_mimic_dataset(data.Dataset):
     
         src_seq = torch.FloatTensor(src_seq)
         src_pos = torch.FloatTensor(src_pos)
-#        gold = torch.FloatTensor(gold)
+        gold = torch.FloatTensor([gold])
         src_fixed_feats = torch.FloatTensor(src_fixed_feats)
         
         print("src_seq.shape = ", src_seq.shape)
-        print("src_pos.shape", src_pos.shape)
-        print("gold.shape", gold.shape)
-        print("src_fixed_feats.shape", src_fixed_feats.shape)
+        print("src_pos.shape = ", src_pos.shape)
+        print("gold.shape = ", gold.shape)
+        print("src_fixed_feats.shape = ", src_fixed_feats.shape)
         
         return src_seq, src_pos, gold, src_fixed_feats
     

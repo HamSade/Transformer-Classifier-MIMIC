@@ -41,7 +41,7 @@ class model(nn.Module):
     d_inner = 2048
         
     def __init__(self, d_src_vec=d_inner,            
-                 len_max_seq=len_max_seq,
+                 len_seq=len_max_seq,
                  d_emb_vec=d_emb_vec,
                  n_layers = n_layers,
                  n_head=n_head, d_k=d_emb_vec//n_head,
