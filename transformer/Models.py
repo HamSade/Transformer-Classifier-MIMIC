@@ -11,7 +11,7 @@ __author__ = "Yu-Hsiang Huang"
 ##########################################################
 def get_non_pad_mask(seq):
     
-    print("\nseq.shape = ", seq.shape, '\n')
+#    print("\nseq.shape = ", seq.shape, '\n')
     assert seq.dim() == 2
     return seq.ne(Constants.PAD).type(torch.float).unsqueeze(-1)
 
@@ -67,22 +67,18 @@ class Encoder(nn.Module):
             self,
             len_seq, d_word_vec,
             n_layers, n_head, d_k, d_v,
-            d_model, d_inner, dropout=0.1):
+            d_inner, dropout=0.1):
 
         super(Encoder, self).__init__()
-
-        # Index to continuous vector mapping
-#        self.src_word_emb = nn.Embedding(
-#            n_src_vocab, d_word_vec, padding_idx=Constants.PAD)  #THis is not required for time series
                       
-        n_position = len_seq #+ 1  #Because of SOS. Not required for continuous inputs
+        n_position = len_seq #+ 1  #TODO Because of SOS. Not required for continuous inputs
         self.position_enc = nn.Embedding.from_pretrained(
             get_sinusoid_encoding_table(n_position, d_word_vec, padding_idx=0), #padding index is for SOS
-            freeze=True)  #Loading the table as a pretrained embedding. freeze=True makes sure it wiull not be updates and the same
+            freeze=True)  #Loading the table as a pretrained embedding. freeze=True makes sure it will not be updated and the same
             #across encoder and decoder
 
         self.layer_stack = nn.ModuleList([
-            EncoderLayer(d_model, d_inner, n_head, d_k, d_v, dropout=dropout)
+            EncoderLayer(d_inner, n_head, d_k, d_v, dropout=dropout)
             for _ in range(n_layers)])
 
     def forward(self, src_seq, src_pos, return_attns=False):
@@ -90,16 +86,18 @@ class Encoder(nn.Module):
         enc_slf_attn_list = []
 
         # -- Prepare masks
-        src_seq_ = src_seq.reshape(-1, src_seq.shape[-1])
-        print("src_seq_.shape", src_seq_.shape)
-
-        slf_attn_mask = get_attn_key_pad_mask(seq_k=src_seq_, seq_q=src_seq_)
-        non_pad_mask = get_non_pad_mask(src_seq_)
+#        src_seq_ = src_seq.reshape(-1, src_seq.shape[-1])
+#        print("src_seq_.shape", src_seq_.shape)
+        slf_attn_mask = get_attn_key_pad_mask(seq_k=src_seq[0], seq_q=src_seq[0])
+        non_pad_mask = get_non_pad_mask(src_seq[0])
 
         # -- Forward
 #        enc_output = self.src_word_emb(src_seq) + self.position_enc(src_pos) 
-        enc_output = src_seq + self.position_enc(src_pos)        
+        src_pos = self.position_enc(src_pos)
+#        src_pos = src_pos.reshape(-1, src_pos.shape[-1])
+#        print("src_pos.shape = ", src_pos.shape)
         
+        enc_output = src_seq + src_pos
         print("enc_output.shape = ", enc_output.shape)
         
         for enc_layer in self.layer_stack:

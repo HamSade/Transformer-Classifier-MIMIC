@@ -25,37 +25,9 @@ from kk_mimic_dataset import kk_mimic_dataset
 #%%
 def cal_loss(pred, gold):#, smoothing):
     ''' Calculate cross entropy loss, apply label smoothing if needed. '''
-
     gold = gold.view(-1)
-#    if smoothing:
-#        eps = 0.1
-#        n_class = pred.size(1)
-#
-#        one_hot = torch.zeros_like(pred).scatter(1, gold.view(-1, 1), 1)
-#        one_hot = one_hot * (1 - eps) + (1 - one_hot) * eps / (n_class - 1)
-#        log_prb = F.log_softmax(pred, dim=1)
-#
-#        non_pad_mask = gold.ne(Constants.PAD)
-#        loss = -(one_hot * log_prb).sum(dim=1)
-#        loss = loss.masked_select(non_pad_mask).sum()  # average later
-#    else:
     loss = F.cross_entropy(pred, gold, reduction='sum') #ignore_index=Constants.PAD, )
-
     return loss
-
-#%%
-#def cal_performance(pred, gold, smoothing=False):
-#    ''' Apply label smoothing if needed '''
-#
-#    loss = cal_loss(pred, gold, smoothing)
-#
-#    pred = pred.max(1)[1]
-#    gold = gold.contiguous().view(-1)
-#    non_pad_mask = gold.ne(Constants.PAD)
-#    n_correct = pred.eq(gold)
-#    n_correct = n_correct.masked_select(non_pad_mask).sum().item()
-#
-#    return loss, n_correct
 
 #%% AUC calculation
 auc = AUCMeter()
@@ -166,8 +138,8 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
             log_train_file, log_valid_file))
 
         with open(log_train_file, 'w') as log_tf, open(log_valid_file, 'w') as log_vf:
-            log_tf.write('epoch,loss,ppl,AUC\n')
-            log_vf.write('epoch,loss,ppl,AUC\n')
+            log_tf.write(' epoch, loss, ppl, AUC\n')
+            log_vf.write(' bepoch, loss, ppl, AUC\n')
 
     valid_auc = []
     for epoch_i in range(opt.epoch):
@@ -219,6 +191,9 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
 #%%
                                        
 def main():
+    
+#    torch.cuda.synchronize() 
+    
     ''' Main function '''
     parser = argparse.ArgumentParser()
 
@@ -228,13 +203,14 @@ def main():
 
     parser.add_argument('-d_src_vec', type=int, default=1440)
     parser.add_argument('-len_seq', type=int, default=10)
-    parser.add_argument('-d_emb_vec', type=int, default=304)
-    parser.add_argument('-d_k', type=int, default=304//8)
-    parser.add_argument('-d_v', type=int, default=304//8)
-    parser.add_argument('-d_inner', type=int, default=2048) #TODO 304/512.*2048=1216.0
-
-    parser.add_argument('-n_head', type=int, default=8)
-    parser.add_argument('-n_layers', type=int, default=3)  #TODO n_layer=6?
+    parser.add_argument('-d_emb_vec', type=int, default=20)
+    parser.add_argument('-d_inner', type=int, default=60) #TODO 304/512.*2048=1216.0
+    parser.add_argument('-n_head', type=int, default=2)
+    parser.add_argument('-n_layers', type=int, default=1)  #TODO n_layer=6?
+    
+    parser.add_argument('-d_k', type=int, default=20//2)
+    parser.add_argument('-d_v', type=int, default=20//2)
+        
     parser.add_argument('-n_warmup_steps', type=int, default=4000)
 
     parser.add_argument('-dropout', type=float, default=0.1)
@@ -251,13 +227,8 @@ def main():
     opt = parser.parse_args()
     opt.cuda = not opt.no_cuda
     
-#    opt.d_word_vec = opt.d_emb_vec  #TODO check. not sure!
-
     #========= Loading Dataset =========#
 #    data = torch.load(opt.data) #TODO only used for next line, why should we?
-#    opt.max_token_seq_len = data['settings'].max_token_seq_len
-
-#    training_data, validation_data = prepare_dataloaders(data, opt)
     training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1) #TODO
     validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size, num_workers=1) #TODO
         
@@ -269,8 +240,9 @@ def main():
 
     print('opt = ', opt)
 
-    device = torch.device('cuda' if opt.cuda else 'cpu')  #TODO
-#    device = torch.device('cpu')
+#    device = torch.device('cuda' if opt.cuda else 'cpu')  #TODO
+    device = torch.device('cpu')
+#    print("device = ", device)
     
 #    if opt.cuda:
 #        torch.cuda.set_device(device)
@@ -280,8 +252,8 @@ def main():
                  d_emb_vec=opt.d_emb_vec,
                  n_layers = opt.n_layers,
                  n_head=opt.n_head, d_k=opt.d_emb_vec//opt.n_head,
-                 d_v=opt.d_emb_vec//opt.n_head, d_model=opt.d_emb_vec,
-                 d_inner=opt.d_inner, dropout=opt.dropout).cuda(device=device)    #TODO
+                 d_v=opt.d_emb_vec//opt.n_head,
+                 d_inner=opt.d_inner, dropout=opt.dropout)#.cuda(device=device)    #TODO
 
     optimizer = ScheduledOptim(
         optim.Adam(

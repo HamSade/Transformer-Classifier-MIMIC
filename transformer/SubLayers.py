@@ -9,18 +9,18 @@ __author__ = "Yu-Hsiang Huang"
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
-    def __init__(self, n_head, d_model, d_k, d_v, dropout=0.1):
+    def __init__(self, n_head, d_k, d_v, dropout=0.1):
         super(MultiHeadAttention, self).__init__()
 
         self.n_head = n_head
         self.d_k = d_k
         self.d_v = d_v
+        d_model = d_k * n_head
 
         self.w_qs = nn.Linear(d_model, n_head * d_k)
         self.w_ks = nn.Linear(d_model, n_head * d_k)
         self.w_vs = nn.Linear(d_model, n_head * d_v)
-        
-        
+                
         nn.init.normal_(self.w_qs.weight, mean=0, std=np.sqrt(2.0 / (d_model + d_k)))
         nn.init.normal_(self.w_ks.weight, mean=0, std=np.sqrt(2.0 / (d_model + d_k)))
         nn.init.normal_(self.w_vs.weight, mean=0, std=np.sqrt(2.0 / (d_model + d_v)))
@@ -45,6 +45,8 @@ class MultiHeadAttention(nn.Module):
         residual = q   # or = v?
         
         # Assigning a separate dimension to heads 
+        
+        print("sz_b, len_q, n_head, d_k = ", sz_b, len_q, n_head, d_k)
         q = self.w_qs(q).view(sz_b, len_q, n_head, d_k)
         k = self.w_ks(k).view(sz_b, len_k, n_head, d_k)
         v = self.w_vs(v).view(sz_b, len_v, n_head, d_v)
