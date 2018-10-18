@@ -71,8 +71,7 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
         optimizer.zero_grad()
 #        pred = model_(src_seq, src_pos, tgt_seq, tgt_pos)
         pred_ = model_(src_seq, src_pos)
-        
-        print("pred_.shape = ", pred_.shape)
+#        print("pred_.shape = ", pred_.shape)
             
         # backward
         loss = cal_loss(pred_, gold_)  #, smoothing=smoothing)
@@ -80,24 +79,29 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
 
         # update parameters
         optimizer.step_and_update_lr()
-
+        
         # note keeping
         total_loss += loss.item()
-        pred.append(np.max(pred_, axis=1))
+        
+        pred_ = pred_.max(1)[1]
+#        print("pred_.shape", pred_.shape)
+        pred.append(pred_)
         gold.append(gold_)
         n_seq_total += 1        
-        # Current AUC            
-        auc_ = auc.value()[0]
         
-        print_chunk_size = 20
-        if n_seq_total%print_chunk_size == print_chunk_size-1:
-            print("training loss = ", loss.item()) 
+        # printing loss
+#        print_chunk_size = 20
+#        if n_seq_total%print_chunk_size == print_chunk_size-1:
+#            print("training loss = ", loss.item()) 
         
     print("train AUC adding started")
     for i in range(len(pred)):
-        auc.add(pred[i].cpu().item(), gold[i].item())
+        for j in range(pred[i].shape[0]):
+            print("pred[i][j] = ", pred[i][j].item())
+            auc.add(pred[i][j].item(), gold[i][j].item())
     print("train AUC adding finished") 
-    auc_ = auc.value()
+    
+    auc_ = auc.value()[0]
     return total_loss, auc_
 
 #%%
@@ -126,20 +130,19 @@ def eval_epoch(model_, validation_data, device):
 
             # note keeping
             total_loss += loss.item()
-            pred.append(pred_.cpu().detach().numpy())
-            gold.append(gold_.cpu().detach().numpy())
+            pred.append(pred_.cpu().numpy())
+            gold.append(gold_.cpu().numpy())
             n_seq_total += 1
 
-            # Current AUC            
-            auc_ = auc.value()[0]
+            # Printing loss
             print("validation loss = ", loss.item())
-            print("validation AUC = ", auc_)
 
     total_loss = total_loss/n_seq_total
 
     print("validation AUC adding started")
     for i in range(len(pred)):
-        auc.add(pred[i], gold[i])
+        for j in range(len(pred[i])):
+            auc.add(pred[i][j], gold[i][j])
     print("validation AUC adding finished") 
     auc_ = auc.value()
     
