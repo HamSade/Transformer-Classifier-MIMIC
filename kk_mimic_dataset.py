@@ -21,6 +21,9 @@ class kk_mimic_dataset(data.Dataset):
         if phase == "train": 
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
             data = datasets.load_svmlight_file(data_path)
+            
+            data = [ data[0][:data[1].shape[0]//10], data[1][:data[1].shape[0]//10] ]
+            
         else:
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
             data = np.array(datasets.load_svmlight_file(data_path))
