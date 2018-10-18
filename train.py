@@ -15,16 +15,18 @@ import torch.optim as optim
 import torch.utils.data
 from transformer.Optim import ScheduledOptim
 
-
 from kk_mimic_dataset import loader
 from Transformer_classifier import model
 from AUCMeter import AUCMeter
 from kk_mimic_dataset import kk_mimic_dataset
-
+ 
+import numpy as np 
+#import matplotlib.pyplot as plt
     
 #%%
 def cal_loss(pred, gold):#, smoothing):
     ''' Calculate cross entropy loss, apply label smoothing if needed. '''
+#    print("gold.shape", gold.shape)
     gold = gold.view(-1)
     loss = F.cross_entropy(pred, gold, reduction='sum') #ignore_index=Constants.PAD, )
     return loss
@@ -56,21 +58,24 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
     pred = []
     gold = []
     n_seq_total = 0
-    
+             
     for batch in tqdm(
             training_data, mininterval=2,
             desc='  - (Training)   ', leave=False):
 
         # prepare data
         src_seq, src_pos, gold_, src_fixed_feats = map(lambda x: x.to(device), batch)
+        gold_ =  torch.cuda.LongTensor(gold_) #TODO 123
 
         # forward
         optimizer.zero_grad()
 #        pred = model_(src_seq, src_pos, tgt_seq, tgt_pos)
-        pred_, self_attn_mat = model_(src_seq, src_pos)
+        pred_ = model_(src_seq, src_pos)
+        
+        print("pred_.shape = ", pred_.shape)
             
         # backward
-        loss = cal_loss(pred, gold, smoothing=smoothing)
+        loss = cal_loss(pred_, gold_)  #, smoothing=smoothing)
         loss.backward()
 
         # update parameters
@@ -78,13 +83,20 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
 
         # note keeping
         total_loss += loss.item()
-        pred.append(pred_)
+        pred.append(np.max(pred_, axis=1))
         gold.append(gold_)
-        n_seq_total += 1
-        auc.add(pred, gold)
-        auc_ = auc.value()
+        n_seq_total += 1        
+        # Current AUC            
+        auc_ = auc.value()[0]
         
-    auc.add(pred, gold)
+        print_chunk_size = 20
+        if n_seq_total%print_chunk_size == print_chunk_size-1:
+            print("training loss = ", loss.item()) 
+        
+    print("train AUC adding started")
+    for i in range(len(pred)):
+        auc.add(pred[i].cpu().item(), gold[i].item())
+    print("train AUC adding finished") 
     auc_ = auc.value()
     return total_loss, auc_
 
@@ -106,27 +118,37 @@ def eval_epoch(model_, validation_data, device):
 
             # prepare data
             src_seq, src_pos, gold_, src_fixed_feats = map(lambda x: x.to(device), batch)
-
+            gold_ =  torch.LongTensor(gold_) #TODO 123
+            
             # forward
-            pred_, self_attn_mat = model_(src_seq, src_pos) #TODO self_attn_mat is unused now, should be used later
-            loss = cal_loss(pred_, gold_, smoothing=False)  #Smoothing is only in the trainig phase
+            pred_ = model_(src_seq, src_pos) #TODO self_attn_mat is unused now, should be used later
+            loss = cal_loss(pred_, gold_)#, smoothing=False)  #Smoothing is only in the trainig phase
 
             # note keeping
             total_loss += loss.item()
-            pred.append(pred_)
-            gold.append(gold_)
+            pred.append(pred_.cpu().detach().numpy())
+            gold.append(gold_.cpu().detach().numpy())
             n_seq_total += 1
 
+            # Current AUC            
+            auc_ = auc.value()[0]
+            print("validation loss = ", loss.item())
+            print("validation AUC = ", auc_)
+
     total_loss = total_loss/n_seq_total
-    auc.add(pred, gold)
+
+    print("validation AUC adding started")
+    for i in range(len(pred)):
+        auc.add(pred[i], gold[i])
+    print("validation AUC adding finished") 
     auc_ = auc.value()
     
     return total_loss, auc_
 
 #%%
 def train(model_, training_data, validation_data, optimizer, device, opt):
-    ''' Start training '''
-
+    ''' Start training '''      
+        
     log_train_file = None #"log/traing.log"
     log_valid_file = None #"log/evaluation.log"
 
@@ -199,17 +221,17 @@ def main():
 
     parser.add_argument('-data', default='trained.chkpt', required=False)
     parser.add_argument('-epoch', type=int, default=10)
-    parser.add_argument('-batch_size', type=int, default=4)
+    parser.add_argument('-batch_size', type=int, default=64)
 
     parser.add_argument('-d_src_vec', type=int, default=1440)
     parser.add_argument('-len_seq', type=int, default=10)
-    parser.add_argument('-d_emb_vec', type=int, default=20)
-    parser.add_argument('-d_inner', type=int, default=60) #TODO 304/512.*2048=1216.0
-    parser.add_argument('-n_head', type=int, default=2)
-    parser.add_argument('-n_layers', type=int, default=1)  #TODO n_layer=6?
+    parser.add_argument('-d_emb_vec', type=int, default=304)
+    parser.add_argument('-d_inner', type=int, default=2048) #TODO 304/512.*2048=1216.0
+    parser.add_argument('-n_head', type=int, default=8)
+    parser.add_argument('-n_layers', type=int, default=3)  #TODO n_layer=6?
     
-    parser.add_argument('-d_k', type=int, default=20//2)
-    parser.add_argument('-d_v', type=int, default=20//2)
+    parser.add_argument('-d_k', type=int, default=304//8)
+    parser.add_argument('-d_v', type=int, default=304//8)
         
     parser.add_argument('-n_warmup_steps', type=int, default=4000)
 
@@ -229,8 +251,8 @@ def main():
     
     #========= Loading Dataset =========#
 #    data = torch.load(opt.data) #TODO only used for next line, why should we?
-    training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1) #TODO
-    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size, num_workers=1) #TODO
+    training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size)#, num_workers=1) #TODO :fix
+    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size)#, num_workers=1) #TODO :fix
         
 
     #%%========= Preparing Model =========#
@@ -239,11 +261,9 @@ def main():
 #            'The src/tgt word2idx table are different but asked to share word embedding.'
 
     print('opt = ', opt)
-
-#    device = torch.device('cuda' if opt.cuda else 'cpu')  #TODO
-    device = torch.device('cpu')
-#    print("device = ", device)
-    
+    device = torch.device('cuda' if opt.cuda else 'cpu')  #TODO
+#    device = torch.device('cpu')
+#    print("device = ", device)    
 #    if opt.cuda:
 #        torch.cuda.set_device(device)
     
@@ -253,7 +273,7 @@ def main():
                  n_layers = opt.n_layers,
                  n_head=opt.n_head, d_k=opt.d_emb_vec//opt.n_head,
                  d_v=opt.d_emb_vec//opt.n_head,
-                 d_inner=opt.d_inner, dropout=opt.dropout)#.cuda(device=device)    #TODO
+                 d_inner=opt.d_inner, dropout=opt.dropout).cuda(device=device)    #TODO
 
     optimizer = ScheduledOptim(
         optim.Adam(

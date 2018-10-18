@@ -47,7 +47,7 @@ class MultiHeadAttention(nn.Module):
         residual = q
         
         # Assigning a separate dimension to heads 
-        print("sz_b, len_q, n_head, d_k = ", sz_b, len_q, n_head, d_k)
+#        print("sz_b, len_q, n_head, d_k = ", sz_b, len_q, n_head, d_k)
         q = self.w_qs(q).view(sz_b, len_q, n_head, d_k)
         k = self.w_ks(k).view(sz_b, len_k, n_head, d_k)
         v = self.w_vs(v).view(sz_b, len_v, n_head, d_v)
@@ -56,8 +56,8 @@ class MultiHeadAttention(nn.Module):
         k = k.permute(2, 0, 1, 3).contiguous().view(-1, len_k, d_k) # (n*b) x lk x dk
         v = v.permute(2, 0, 1, 3).contiguous().view(-1, len_v, d_v) # (n*b) x lv x dv
         
-                
-        mask = mask.repeat(n_head, 1, 1) # (n*b) x .. x ..
+        if mask is not None:
+            mask = mask.repeat(n_head, 1, 1) # (n*b) x .. x ..
         output, attn = self.attention(q, k, v, mask=mask)
 
         output = output.view(n_head, sz_b, len_q, d_v)

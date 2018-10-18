@@ -3,8 +3,8 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import Constants as Constants
-from Layers import EncoderLayer#, DecoderLayer
+import transformer.Constants as Constants
+from transformer.Layers import EncoderLayer#, DecoderLayer
 
 __author__ = "Yu-Hsiang Huang"
 
@@ -14,7 +14,7 @@ def get_sinusoid_encoding_table(n_position, d_emb_vec, padding_idx=None):
     ''' Sinusoid position encoding table '''
 
     def cal_angle(position, hid_idx): #position in the sequence and index in the hidden dimension (#512)
-        return position / np.power(10000, 2 * (hid_idx // 2) / d_emb_vec) #in the paper the pos is modeled as 2i and 2i+1
+        return position / np.power(10000., 2. * (hid_idx // 2) / d_emb_vec) #in the paper the pos is modeled as 2i and 2i+1
                                                                         # hid_idx//2 = i
 
     def get_posi_angle_vec(position):
@@ -31,13 +31,26 @@ def get_sinusoid_encoding_table(n_position, d_emb_vec, padding_idx=None):
 
     return torch.FloatTensor(sinusoid_table)
 
+########  TESTing table
+#T = get_sinusoid_encoding_table(2, 4).numpy()
+#print(T)
+#print(np.sum(T, axis=0))
+
 ##########################################################
+
 def get_non_pad_mask(seq):
-    
+    '''Just pads teh parts that are equal to Constants.PAD'''    
 #    print("\nseq.shape = ", seq.shape, '\n')
     assert seq.dim() == 2
     return seq.ne(Constants.PAD).type(torch.float).unsqueeze(-1)
-    
+  
+#### TEST
+#seq= np.random.normal(size=(2,3))
+#seq[0,0]=0.
+#seq=torch.FloatTensor(seq)
+#mask = get_non_pad_mask(seq)
+#print(mask)
+
 ##########################################################
 def get_attn_key_pad_mask(seq_k, seq_q):
     ''' For masking out the padding part of key sequence. '''
@@ -47,8 +60,16 @@ def get_attn_key_pad_mask(seq_k, seq_q):
     padding_mask = seq_k.eq(Constants.PAD)
     padding_mask = padding_mask.unsqueeze(1).expand(-1, len_q, -1)  # b x lq x lk
     
-    print("padding_mask.shape", padding_mask.shape)
+#    print("padding_mask.shape", padding_mask.shape)
     return padding_mask
+    
+### TEST
+#seq= np.random.normal(size=(10,20))
+#seq[0,0]=0.
+#seq=torch.FloatTensor(seq)
+#padding_mask = get_non_pad_mask(seq)
+#print(padding_mask)  
+    
 
 ##########################################################
 class Encoder(nn.Module):
@@ -62,7 +83,7 @@ class Encoder(nn.Module):
 
         super(Encoder, self).__init__()
                       
-        n_position = len_seq + 1  #TODO Because of SOS. Not required for continuous inputs
+        n_position = len_seq #+ 1  #TODO Because of SOS. Not required for continuous inputs
         self.position_enc = nn.Embedding.from_pretrained(
             get_sinusoid_encoding_table(n_position, d_k*n_head, padding_idx=0), #padding index is for SOS;;;; Also d_wrd_vec was changed to d_k (true #features) 
             
@@ -75,11 +96,11 @@ class Encoder(nn.Module):
 
     def forward(self, src_seq, src_pos, return_attns=False):
 
-        enc_slf_attn_list = []
+#        enc_slf_attn_list = []
         # -- Prepare masks
 #        src_seq_ = src_seq.reshape(-1, src_seq.shape[-1])
 #        print("src_seq_.shape", src_seq_.shape)
-        slf_attn_mask = get_attn_key_pad_mask(seq_k=src_seq[0], seq_q=src_seq[0])
+        slf_attn_mask = None #TODO get_attn_key_pad_mask(seq_k=src_seq[0], seq_q=src_seq[0]) 
 #        non_pad_mask = get_non_pad_mask(src_seq[0])
 
         # -- Forward
@@ -99,14 +120,12 @@ class Encoder(nn.Module):
                 enc_output,
 #                non_pad_mask=non_pad_mask,
                 slf_attn_mask=slf_attn_mask)
-            if return_attns:
-                enc_slf_attn_list += [enc_slf_attn]        
+#            if return_attns:
+#                enc_slf_attn_list += [enc_slf_attn]        
 
-        if return_attns:
-            return enc_output, enc_slf_attn_list
+#        if return_attns:
+#            return enc_output, enc_slf_attn_list
         return enc_output
-
-
 
 ##########################################################
 #def get_subsequent_mask(seq):

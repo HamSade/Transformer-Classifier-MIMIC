@@ -74,24 +74,23 @@ class model(nn.Module):
 #        self.FC1 = nn.Linear(304, 64)   
 #        self.FC2 = nn.Linear(64, 8)
 #        self.FC3 = nn.Linear(8, 2)
-        
         #Average pooling
-        self.avg_pooling = nn.AvgPool1d(d_emb_vec -1, stride=1)  #d_emb_vec-1: so that all features are average and become a scalar
+        self.avg_pooling = nn.AvgPool1d(d_emb_vec, stride=1)  #d_emb_vec-1: so that all features are average and become a scalar
         self.FC = nn.Linear(len_seq, 2)  #2: binary classification
         self.softmax = nn.Softmax(dim=-1)
-        
         
         
     def forward(self, x, x_pos):
         
         x = self.ffn(x)       
         x = self.encoder(x, x_pos, return_attns=False)
-#        x = self.FC1(x)
-#        x = self.FC2(x)
-#        x = self.FC3(x)
+#        x = self.FC1(x); x = self.FC2(x); x = self.FC3(x)
+#        print("size before avg pooling = ", x.shape)
         x = self.avg_pooling(x)
+#        print("size after avg pooling = ", x.shape)
+    
         x = torch.squeeze(x)  #To get rid of 1-dimensional feature and results in [batch_size, len_seq] size
-        print('shape after squeeze = ', x.shape)
+#        print('shape after squeeze = ', x.shape)
         x = self.FC(x)
         return self.softmax(x)
        

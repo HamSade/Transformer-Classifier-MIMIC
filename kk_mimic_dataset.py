@@ -57,12 +57,13 @@ class kk_mimic_dataset(data.Dataset):
         src_fixed_feats = self.fixed_features[index]
         gold = self.labels[index]
         
-        src_pos = np.array([pos_i+1 for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <- pos_i + 1 ??!
-    
+        src_pos = np.array([pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <- pos_i + 1 ??!
+        
+#        print("src_pos.shape", src_pos.shape)
         src_seq = torch.FloatTensor(src_seq)
         src_pos = torch.LongTensor(src_pos)
-        gold = torch.FloatTensor([gold])
         src_fixed_feats = torch.FloatTensor(src_fixed_feats)
+        gold = torch.LongTensor( [gold] )
         
 #        print("src_seq.shape = ", src_seq.shape)
 #        print("src_pos.shape = ", src_pos.shape)
@@ -70,21 +71,14 @@ class kk_mimic_dataset(data.Dataset):
 #        print("src_fixed_feats.shape = ", src_fixed_feats.shape)
         
         return src_seq, src_pos, gold, src_fixed_feats
-    
 
-#%%
-#def collate_fn_temp(x):
-    
-    
 #%% Data loader
         
-def loader(dataset, batch_size=64, shuffle=True, num_workers=1):
-    params = {'batch_size': batch_size, 'shuffle': shuffle, 'num_workers':num_workers}
+def loader(dataset, batch_size=64, shuffle=True):#, num_workers=1):
+    params = {'batch_size': batch_size, 'shuffle': shuffle}#, 'num_workers':num_workers}
     return data.DataLoader(dataset, **params) #, collate_fn=collate_fn_temp)
                 
-
 #%% Test dataloader
-
 #training_set = kk_mimic_dataset()
 #data_loader = loader(training_set)
 
