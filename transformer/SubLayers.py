@@ -1,4 +1,6 @@
 ''' Define the sublayers in encoder/decoder layer '''
+
+#import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
@@ -42,10 +44,9 @@ class MultiHeadAttention(nn.Module):
         sz_b, len_k, _ = k.size()
         sz_b, len_v, _ = v.size()
 
-        residual = q   # or = v?
+        residual = q
         
         # Assigning a separate dimension to heads 
-        
         print("sz_b, len_q, n_head, d_k = ", sz_b, len_q, n_head, d_k)
         q = self.w_qs(q).view(sz_b, len_q, n_head, d_k)
         k = self.w_ks(k).view(sz_b, len_k, n_head, d_k)
@@ -54,7 +55,8 @@ class MultiHeadAttention(nn.Module):
         q = q.permute(2, 0, 1, 3).contiguous().view(-1, len_q, d_k) # (n*b) x lq x dk
         k = k.permute(2, 0, 1, 3).contiguous().view(-1, len_k, d_k) # (n*b) x lk x dk
         v = v.permute(2, 0, 1, 3).contiguous().view(-1, len_v, d_v) # (n*b) x lv x dv
-
+        
+                
         mask = mask.repeat(n_head, 1, 1) # (n*b) x .. x ..
         output, attn = self.attention(q, k, v, mask=mask)
 
