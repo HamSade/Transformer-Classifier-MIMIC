@@ -98,7 +98,7 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
     for i in range(len(pred)):
         for j in range(pred[i].shape[0]):
             print("pred[i][j] = ", pred[i][j].item())
-            auc.add(pred[i][j].item(), gold[i][j].item())
+            auc.add(pred[i][j], gold[i][j])
     print("train AUC adding finished") 
     
     auc_ = auc.value()[0]
@@ -130,6 +130,8 @@ def eval_epoch(model_, validation_data, device):
 
             # note keeping
             total_loss += loss.item()
+            
+            pred_ = pred_.max(1)[1]
             pred.append(pred_.cpu().numpy())
             gold.append(gold_.cpu().numpy())
             n_seq_total += 1
