@@ -1,7 +1,6 @@
 '''
 This script handling the training process.
 '''
-
 import argparse
 import math
 import time
@@ -20,14 +19,17 @@ from Transformer_classifier import model
 from AUCMeter import AUCMeter
 from kk_mimic_dataset import kk_mimic_dataset
  
-import numpy as np 
+#import numpy as np 
 #import matplotlib.pyplot as plt
     
+    
+print_chunk_size = 20
+
 #%%
 def cal_loss(pred, gold):#, smoothing):
     ''' Calculate cross entropy loss, apply label smoothing if needed. '''
 #    print("gold.shape", gold.shape)
-    gold = gold.view(-1)
+#    gold = gold.view(-1)
     loss = F.cross_entropy(pred, gold, reduction='sum') #ignore_index=Constants.PAD, )
     return loss
 
@@ -37,8 +39,8 @@ class cal_AUC():
     
     def __init__(self, pred, gold):
         self.auc = auc
-#        pred = pred.max(1)[1]
-        pred = pred.max(dim=1)   #TODO
+        pred = pred.max(1)[1]
+#        pred = pred.max(dim=1)   #TODO
         gold = gold.contiguous().view(-1)        
         auc.add(pred, gold)
     
@@ -66,6 +68,7 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
         # prepare data
         src_seq, src_pos, gold_, src_fixed_feats = map(lambda x: x.to(device), batch)
         gold_ =  torch.cuda.LongTensor(gold_) #TODO 123
+        gold_ = gold_.view(-1)
 
         # forward
         optimizer.zero_grad()
@@ -85,21 +88,24 @@ def train_epoch(model_, training_data, optimizer, device, smoothing=False):
         
         pred_ = pred_.max(1)[1]
 #        print("pred_.shape", pred_.shape)
-        pred.append(pred_)
-        gold.append(gold_)
+        pred.append(pred_.cpu().numpy())
+        gold.append(gold_.cpu().numpy())
         n_seq_total += 1        
         
         # printing loss
-#        print_chunk_size = 20
-#        if n_seq_total%print_chunk_size == print_chunk_size-1:
-#            print("training loss = ", loss.item()) 
+        if n_seq_total%print_chunk_size == print_chunk_size-1:
+            print("training loss = ", loss.item()) 
         
-    print("train AUC adding started")
+#    print("train AUC adding started")
     for i in range(len(pred)):
-        for j in range(pred[i].shape[0]):
-            print("pred[i][j] = ", pred[i][j].item())
-            auc.add(pred[i][j], gold[i][j])
-    print("train AUC adding finished") 
+#        print("pred[i] ", pred[i])
+#        print("pred[i].ndim() ", pred[i].ndim)
+#        print("pred[i].shape ", pred[i].shape)
+#        print("gold[i] ", gold[i])
+#        print("gold[i].ndim() ", gold[i].ndim)
+#        print("gold[i].shape ", gold[i].shape)
+        auc.add(pred[i], gold[i])
+#    print("train AUC adding finished") 
     
     auc_ = auc.value()[0]
     return total_loss, auc_
@@ -122,7 +128,8 @@ def eval_epoch(model_, validation_data, device):
 
             # prepare data
             src_seq, src_pos, gold_, src_fixed_feats = map(lambda x: x.to(device), batch)
-            gold_ =  torch.LongTensor(gold_) #TODO 123
+            gold_ =  torch.cuda.LongTensor(gold_) #TODO 123
+            gold_ = gold_.view(-1)
             
             # forward
             pred_ = model_(src_seq, src_pos) #TODO self_attn_mat is unused now, should be used later
@@ -137,16 +144,17 @@ def eval_epoch(model_, validation_data, device):
             n_seq_total += 1
 
             # Printing loss
-            print("validation loss = ", loss.item())
+            
+            if n_seq_total%print_chunk_size == print_chunk_size-1:
+                print("validation loss = ", loss.item())
 
     total_loss = total_loss/n_seq_total
 
-    print("validation AUC adding started")
+#    print("validation AUC adding started")
     for i in range(len(pred)):
-        for j in range(len(pred[i])):
-            auc.add(pred[i][j], gold[i][j])
-    print("validation AUC adding finished") 
-    auc_ = auc.value()
+        auc.add(pred[i], gold[i])
+#    print("validation AUC adding finished") 
+    auc_ = auc.value()[0]
     
     return total_loss, auc_
 
@@ -177,19 +185,19 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
             model_, training_data, optimizer, device, smoothing=opt.label_smoothing)
         print('  - (Training)   ppl: {ppl: 8.5f}, AUC: {AUC:3.3f} %, '\
               'elapse: {elapse:3.3f} min'.format(
-                  ppl=math.exp(min(train_loss_, 100)), accu=100*train_auc_,
+                  ppl=math.exp(min(train_loss_, 100)), AUC=100*train_auc_,
                   elapse=(time.time()-start)/60))
 
         start = time.time()
         valid_loss_, valid_auc_ = eval_epoch(model_, validation_data, device)
         print('  - (Validation) ppl: {ppl: 8.5f}, AUC: {AUC:3.3f} %, '\
                 'elapse: {elapse:3.3f} min'.format(
-                    ppl=math.exp(min(valid_loss_, 100)), auc=100*valid_auc_,
+                    ppl=math.exp(min(valid_loss_, 100)), AUC=100*valid_auc_,
                     elapse=(time.time()-start)/60))
 
         valid_auc += [valid_auc_]
 
-        model_state_dict = model.state_dict()
+        model_state_dict = model_.state_dict()
         checkpoint = {
             'model': model_state_dict,
             'settings': opt,
@@ -197,7 +205,7 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
 
         if opt.save_model:
             if opt.save_mode == 'all':
-                model_name = opt.save_model + '_AUC_{AUC:3.3f}.chkpt'.format(auc=100*valid_auc_)
+                model_name = opt.save_model + '_AUC_{AUC:3.3f}.chkpt'.format(AUC=100*valid_auc_)
                 torch.save(checkpoint, model_name)
             elif opt.save_mode == 'best':
                 model_name = opt.save_model + '.chkpt'
@@ -207,13 +215,12 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
 
         if log_train_file and log_valid_file:
             with open(log_train_file, 'a') as log_tf, open(log_valid_file, 'a') as log_vf:
-                log_tf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{accu:3.3f}\n'.format(
+                log_tf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{AUC:3.3f}\n'.format(
                     epoch=epoch_i, loss=train_loss_,
-                    ppl=math.exp(min(train_loss_, 100)), accu=100*train_auc_))
-                log_vf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{accu:3.3f}\n'.format(
+                    ppl=math.exp(min(train_loss_, 100)), AUC=100*train_auc_))
+                log_vf.write('{epoch},{loss: 8.5f},{ppl: 8.5f},{AUC:3.3f}\n'.format(
                     epoch=epoch_i, loss=valid_loss_,
-                    ppl=math.exp(min(valid_loss_, 100)), accu=100*valid_auc_))
-
+                    ppl=math.exp(min(valid_loss_, 100)), AUC=100*valid_auc_))
 
 #%%
                                        
@@ -256,8 +263,8 @@ def main():
     
     #========= Loading Dataset =========#
 #    data = torch.load(opt.data) #TODO only used for next line, why should we?
-    training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size)#, num_workers=1) #TODO :fix
-    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size)#, num_workers=1) #TODO :fix
+    training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1) #TODO :fix
+    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size, num_workers=1) #TODO :fix
         
 
     #%%========= Preparing Model =========#

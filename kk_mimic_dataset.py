@@ -21,7 +21,7 @@ class kk_mimic_dataset(data.Dataset):
         if phase == "train": 
             data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
             data = datasets.load_svmlight_file(data_path)
-            
+
             data = [ data[0][:data[1].shape[0]//10], data[1][:data[1].shape[0]//10] ]
             
         else:
@@ -77,7 +77,7 @@ class kk_mimic_dataset(data.Dataset):
 
 #%% Data loader
         
-def loader(dataset, batch_size=64, shuffle=True):#, num_workers=1):
+def loader(dataset, batch_size=64, shuffle=True, num_workers=1):
     params = {'batch_size': batch_size, 'shuffle': shuffle}#, 'num_workers':num_workers}
     return data.DataLoader(dataset, **params) #, collate_fn=collate_fn_temp)
                 
