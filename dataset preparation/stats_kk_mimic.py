@@ -37,6 +37,7 @@ feat_ind = 0
 
 max_ = [-np.inf]*1440
 min_ = [np.inf]*1440
+
 sum_ = [0.]*1440
 sum2_ = [0.]*1440
 
