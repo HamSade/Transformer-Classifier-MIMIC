@@ -8,7 +8,7 @@ Created on Fri Oct 19 17:41:17 2018
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+#%%
 file_name = "stats.npy"
 stats = ("mean_", "scale_", "min_", "max_", "var_")
 

@@ -93,4 +93,5 @@ class model(nn.Module):
 #        print('shape after squeeze = ', x.shape)
         x = self.FC(x)
         return self.softmax(x)
+    
        

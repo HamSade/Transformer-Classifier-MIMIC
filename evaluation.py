@@ -1,4 +1,4 @@
-''' Translate input text with trained model. '''
+''' Evaluate the binary classification performance. '''
 
 import torch
 import torch.utils.data

@@ -13,19 +13,11 @@ from tqdm import tqdm
 #import pdb
 from kk_mimic_dataset import kk_mimic_dataset
 
-
-#import pdb;
-#pdb.set_trace()
-
 #%% Test dataloader
                 
 training_set = kk_mimic_dataset()
 validation_set = kk_mimic_dataset(phase='validation')
 test_set = kk_mimic_dataset(phase='test')
-
-#train_loader = loader(training_set)
-#validation_loader = loader(validation_set)
-#test_loader = loader(test_set)
 
 print("len(training_set)", len(training_set))
 print("len(validation_set)", len(validation_set))
@@ -33,20 +25,20 @@ print("len(test_set)", len(test_set))
 
 #%%
 
-feat_ind = 0
+num_feats = 14400
 
-max_ = [-np.inf]*1440
-min_ = [np.inf]*1440
+max_ = [-np.inf]*num_feats
+min_ = [np.inf]*num_feats
 
-sum_ = [0.]*1440
-sum2_ = [0.]*1440
+sum_ = [0.]*num_feats
+sum2_ = [0.]*num_feats
 
 training_counter = 0
 for x in tqdm(training_set):
     x = x[0]
     training_counter += 1
     
-    for j in range(1440):
+    for j in range(num_feats):
         temp = x[:,j] #src_seq
         max_[j] = temp.max()
         min_[j] = temp.min()
@@ -58,7 +50,7 @@ for x in tqdm(validation_set):
     x = x[0]
     validation_counter += 1
     
-    for j in range(1440):
+    for j in range(num_feats):
         temp = x[:,j] #src_seq
         max_[j] = temp.max()
         min_[j] = temp.min()
@@ -70,7 +62,7 @@ for x in tqdm(test_set):
     x = x[0]
     test_counter += 1
     
-    for j in range(1440):
+    for j in range(num_feats):
         temp = x[:,j] #src_seq
         max_[j] = temp.max()
         min_[j] = temp.min()

@@ -14,23 +14,34 @@ import torch.optim as optim
 import torch.utils.data
 from transformer.Optim import ScheduledOptim
 
+import sys
+sys.path.insert(0, './dataset/')
+from kk_mimic_dataset import kk_mimic_dataset
 from kk_mimic_dataset import loader
+
 from Transformer_classifier import model
 from AUCMeter import AUCMeter
-from kk_mimic_dataset import kk_mimic_dataset
- 
-#import numpy as np 
-#import matplotlib.pyplot as plt
-    
     
 print_chunk_size = 20
 
 #%%
-def cal_loss(pred, gold):#, smoothing):
+def cal_loss(pred, gold, smoothing=True):
     ''' Calculate cross entropy loss, apply label smoothing if needed. '''
 #    print("gold.shape", gold.shape)
 #    gold = gold.view(-1)
-    loss = F.cross_entropy(pred, gold, reduction='sum') #ignore_index=Constants.PAD, )
+    
+    if smoothing:
+        eps = 0.1
+        n_class = pred.size(1)
+
+        one_hot = torch.zeros_like(pred).scatter(1, gold.view(-1, 1), 1)
+        one_hot = one_hot * (1 - eps) + (1 - one_hot) * eps / (n_class - 1)
+        log_prb = F.log_softmax(pred, dim=1)
+
+        loss = -(one_hot * log_prb).sum(dim=1)
+        loss = loss.sum()  # average later
+    else:
+        loss = F.cross_entropy(pred, gold, reduction='sum')
     return loss
 
 #%% AUC calculation
@@ -41,7 +52,7 @@ class cal_AUC():
         self.auc = auc
         pred = pred.max(1)[1]
 #        pred = pred.max(dim=1)   #TODO
-        gold = gold.contiguous().view(-1)        
+#        gold = gold.contiguous().view(-1)        
         auc.add(pred, gold)
     
     def reset(self):
@@ -264,7 +275,7 @@ def main():
     #========= Loading Dataset =========#
 #    data = torch.load(opt.data) #TODO only used for next line, why should we?
     training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1) #TODO :fix
-    validation_data = loader(kk_mimic_dataset(phase="validation"), batch_size=opt.batch_size, num_workers=1) #TODO :fix
+    validation_data = loader(kk_mimic_dataset(phase="valid"), batch_size=opt.batch_size, num_workers=1) #TODO :fix
         
 
     #%%========= Preparing Model =========#
