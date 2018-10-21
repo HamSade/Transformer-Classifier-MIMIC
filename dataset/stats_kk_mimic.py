@@ -15,9 +15,9 @@ from kk_mimic_dataset import kk_mimic_dataset
 
 #%% Test dataloader
                 
-training_set = kk_mimic_dataset()
-validation_set = kk_mimic_dataset(phase='validation')
-test_set = kk_mimic_dataset(phase='test')
+training_set = kk_mimic_dataset(data_norm=False)
+validation_set = kk_mimic_dataset(phase='validation',data_norm=False)
+test_set = kk_mimic_dataset(phase='test',data_norm=False)
 
 print("len(training_set)", len(training_set))
 print("len(validation_set)", len(validation_set))
@@ -25,7 +25,7 @@ print("len(test_set)", len(test_set))
 
 #%%
 
-num_feats = 14400
+num_feats = 1440  #per seq token
 
 max_ = [-np.inf]*num_feats
 min_ = [np.inf]*num_feats
