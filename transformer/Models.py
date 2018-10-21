@@ -3,11 +3,14 @@
 import torch
 import torch.nn as nn
 import numpy as np
-import transformer.Constants as Constants
-from transformer.Layers import EncoderLayer#, DecoderLayer
+
+#import transformer.Constants as Constants
+#from transformer.Layers import EncoderLayer#, DecoderLayer
+
+import Constants as Constants
+from Layers import EncoderLayer#, DecoderLayer
 
 __author__ = "Yu-Hsiang Huang"
-
 
 ##########################################################
 def get_sinusoid_encoding_table(n_position, d_emb_vec, padding_idx=None):
@@ -39,13 +42,13 @@ def get_sinusoid_encoding_table(n_position, d_emb_vec, padding_idx=None):
 ##########################################################
 
 def get_non_pad_mask(seq):
-    '''Just pads teh parts that are equal to Constants.PAD'''    
+    '''Just pads the parts that are equal to Constants.PAD'''    
 #    print("\nseq.shape = ", seq.shape, '\n')
     assert seq.dim() == 2
     return seq.ne(Constants.PAD).type(torch.float).unsqueeze(-1)
   
 #### TEST
-#seq= np.random.normal(size=(2,3))
+#seq= np.random.normal(size=(5,7))
 #seq[0,0]=0.
 #seq=torch.FloatTensor(seq)
 #mask = get_non_pad_mask(seq)

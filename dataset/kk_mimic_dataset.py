@@ -25,14 +25,13 @@ class kk_mimic_dataset(data.Dataset):
             data_path = "../../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
             data = np.array(datasets.load_svmlight_file(data_path))
            
-            if  phase == "valid":
-#                print("np.shape(data[1]) = ", np.shape(data[1])[0]//10)
+            if  phase == "valid":#               
                 data = [ data[0][:data[1].shape[0]//10], data[1][:data[1].shape[0]//10] ]  #TODO 10% for validation
             else:            
                 data = [ data[0][data[1].shape[0]//10:], data[1][data[1].shape[0]//10:] ]  #TODO 90% for test
                 
         # ONLY for fast debugging
-#        data = [ data[0][:data[1].shape[0]//100], data[1][:data[1].shape[0]//100] ] #Only 1/100 of all patients
+        data = [ data[0][:data[1].shape[0]//100], data[1][:data[1].shape[0]//100] ] #Only 1/100 of all patients
         
         self.d_feat = 14400
         self.seq_len = seq_len
@@ -60,21 +59,12 @@ class kk_mimic_dataset(data.Dataset):
     def __getitem__(self, index):
         src_seq = self.temporal_features[index]
         src_fixed_feats = self.fixed_features[index]
-        gold = self.labels[index]
-        
-        src_pos = np.array([pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <- pos_i + 1 ??!
-        
-#        print("src_pos.shape", src_pos.shape)
+        gold = self.labels[index]        
+        src_pos = np.array([pos_i for pos_i, _ in enumerate(src_seq)])  #TODO pos_i <- pos_i + 1 ??!        
         src_seq = torch.FloatTensor(src_seq)
         src_pos = torch.LongTensor(src_pos)
         src_fixed_feats = torch.FloatTensor(src_fixed_feats)
         gold = torch.LongTensor( [gold] )
-        
-#        print("src_seq.shape = ", src_seq.shape)
-#        print("src_pos.shape = ", src_pos.shape)
-#        print("gold.shape = ", gold.shape)
-#        print("src_fixed_feats.shape = ", src_fixed_feats.shape)
-        
         return src_seq, src_pos, gold, src_fixed_feats
 
 #%% Data loader

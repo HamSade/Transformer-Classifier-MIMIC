@@ -39,11 +39,11 @@ for x in tqdm(training_set):
     training_counter += 1
     
     for j in range(num_feats):
-        temp = x[:,j] #src_seq
-        max_[j] = temp.max()
-        min_[j] = temp.min()
-        sum_[j] = temp.sum()
-        sum2_[j] = np.power(temp,2).sum()
+        temp = x[:,j]
+        max_[j] = max(max_[j], temp.max())
+        min_[j] = min(min_[j], temp.min())
+        sum_[j] += temp.sum()
+        sum2_[j] += np.power(temp,2).sum()
         
 validation_counter = 0    
 for x in tqdm(validation_set):
@@ -51,11 +51,12 @@ for x in tqdm(validation_set):
     validation_counter += 1
     
     for j in range(num_feats):
-        temp = x[:,j] #src_seq
-        max_[j] = temp.max()
-        min_[j] = temp.min()
-        sum_[j] = temp.sum()
-        sum2_[j] = np.power(temp,2).sum()
+        temp = x[:,j]
+        max_[j] = max(max_[j], temp.max())
+        min_[j] = min(min_[j], temp.min())
+        sum_[j] += temp.sum()
+        sum2_[j] += np.power(temp,2).sum()
+
 
 test_counter = 0        
 for x in tqdm(test_set):
@@ -63,11 +64,12 @@ for x in tqdm(test_set):
     test_counter += 1
     
     for j in range(num_feats):
-        temp = x[:,j] #src_seq
-        max_[j] = temp.max()
-        min_[j] = temp.min()
-        sum_[j] = temp.sum()
-        sum2_[j] = np.power(temp,2).sum()
+        temp = x[:,j]
+        max_[j] = max(max_[j], temp.max())
+        min_[j] = min(min_[j], temp.min())
+        sum_[j] += temp.sum()
+        sum2_[j] += np.power(temp,2).sum()
+
         
 mean_ = np.divide (sum_, ( len(training_set) + len(validation_set) + len(test_set)) )
 ex2_ = np.divide ( sum2_ , ( len(training_set) + len(validation_set) + len(test_set)) ) 
@@ -81,7 +83,7 @@ print("min(min_)", min(min_))
 scale_ = np.maximum(np.abs(max_), np.abs(min_))
 
 #%%
-file_name = 'stats/stats.npy'
+file_name = 'stats.npy'
 stats = (mean_, scale_, min_, max_, var_)
 np.save(file_name, stats, allow_pickle=True, fix_imports=True)
 

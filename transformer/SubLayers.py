@@ -4,10 +4,15 @@
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-from transformer.Modules import ScaledDotProductAttention
+
+#from transformer.Modules import ScaledDotProductAttention
+from Modules import ScaledDotProductAttention
+
 
 __author__ = "Yu-Hsiang Huang"
 
+
+#%%
 class MultiHeadAttention(nn.Module):
     ''' Multi-Head Attention module '''
 
@@ -67,6 +72,8 @@ class MultiHeadAttention(nn.Module):
         output = self.layer_norm(output + residual) # add & norm
 
         return output, attn
+
+
 
 class PositionwiseFeedForward(nn.Module):
     ''' A two-feed-forward-layer module '''

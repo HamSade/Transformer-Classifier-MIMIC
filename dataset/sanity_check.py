@@ -19,30 +19,31 @@ test_set = kk_mimic_dataset(phase='test')
 
 #%%
 
-max_train = [-np.inf]*1440
-min_train = [np.inf]*1440
-sum_train = [0.]*1440
+num_feats = 1440
 
-max_valid = [-np.inf]*1440
-min_valid = [np.inf]*1440
-sum_valid = [0.]*1440
+max_train = [-np.inf]*num_feats
+min_train = [np.inf]*num_feats
+sum_train = [0.]*num_feats
 
-max_test = [-np.inf]*1440
-min_test = [np.inf]*1440
-sum_test = [0.]*1440
+max_valid = [-np.inf]*num_feats
+min_valid = [np.inf]*num_feats
+sum_valid = [0.]*num_feats
+
+max_test = [-np.inf]*num_feats
+min_test = [np.inf]*num_feats
+sum_test = [0.]*num_feats
 
 #%%
-
 training_counter = 0
 for x in tqdm(train_set):
     x = x[0]
     training_counter += 1
     
-    for j in range(1440):
-        temp = x[:,j] #src_seq
-        max_train[j] = temp.max()
-        min_train[j] = temp.min()
-        sum_train[j] = temp.sum()
+    for j in range(num_feats):
+        temp = x[:,j]
+        max_train[j] = max(max_train[j], temp.max() )
+        min_train[j] = min(min_train[j], temp.min() )
+        sum_train[j] += temp.sum()
 
 #%%        
 validation_counter = 0    
@@ -50,11 +51,11 @@ for x in tqdm(valid_set):
     x = x[0]
     validation_counter += 1
     
-    for j in range(1440):
-        temp = x[:,j] #src_seq
-        max_valid[j] = temp.max()
-        min_valid[j] = temp.min()
-        sum_valid[j] = temp.sum()
+    for j in range(num_feats):
+        temp = x[:,j]
+        max_valid[j] = max(max_valid[j], temp.max() )
+        min_valid[j] = min(min_valid[j], temp.min() )
+        sum_valid[j] += temp.sum()
         
 #%%
 test_counter = 0        
@@ -62,11 +63,11 @@ for x in tqdm(test_set):
     x = x[0]
     test_counter += 1
     
-    for j in range(1440):
-        temp = x[:,j] #src_seq
-        max_test[j] = temp.max()
-        min_test[j] = temp.min()
-        sum_test[j] = temp.sum()
+    for j in range(num_feats):
+        temp = x[:,j]
+        max_test[j] = max(max_test[j], temp.max() )
+        min_test[j] = min(min_test[j], temp.min() )
+        sum_test[j] += temp.sum()
         
 mean_train = np.divide (sum_train, len(train_set) )  
 scale_train = np.maximum(np.abs(max_train), np.abs(min_train))
