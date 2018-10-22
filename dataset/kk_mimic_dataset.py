@@ -5,8 +5,12 @@ Created on Fri Oct  5 10:40:35 2018
 @author: hamed 
 """
 
-import torch
-from torch.utils import data
+try: 
+    import torch
+    from torch.utils import data
+except:
+    pass
+    
 import numpy as np
 #import sklearn
 from sklearn import datasets
@@ -20,7 +24,6 @@ class kk_mimic_dataset(data.Dataset):
         if phase == "train": 
             data_path = "../../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
             data = datasets.load_svmlight_file(data_path)           
- 
         else:
             data_path = "../../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
             data = np.array(datasets.load_svmlight_file(data_path))

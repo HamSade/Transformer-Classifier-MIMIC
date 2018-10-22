@@ -17,9 +17,14 @@ train_set = kk_mimic_dataset()
 valid_set = kk_mimic_dataset(phase='valid')
 test_set = kk_mimic_dataset(phase='test')
 
-#%%
+print("n_train = ", len(train_set))
+print("n_valid = ", len(valid_set))
+print("n_test = ", len(test_set))
 
+#%%
 num_feats = 1440
+seq_len  = 10
+
 
 max_train = [-np.inf]*num_feats
 min_train = [np.inf]*num_feats
@@ -68,38 +73,58 @@ for x in tqdm(test_set):
         max_test[j] = max(max_test[j], temp.max() )
         min_test[j] = min(min_test[j], temp.min() )
         sum_test[j] += temp.sum()
-        
-mean_train = np.divide (sum_train, len(train_set) )  
-scale_train = np.maximum(np.abs(max_train), np.abs(min_train))
 
-mean_valid = np.divide (sum_train, len(valid_set) )  
-scale_valid = np.maximum(np.abs(max_valid), np.abs(min_valid))
+#%%       
+mean_train = np.divide (sum_train, seq_len * len(train_set) )  
+scale_train = np.maximum( np.abs(np.subtract(max_train, mean_train)), np.abs(np.subtract(min_train, mean_train) ))
 
-mean_test = np.divide (sum_test, len(test_set) )  
-scale_test = np.maximum(np.abs(max_test), np.abs(min_test))
+mean_valid = np.divide (sum_valid, seq_len * len(valid_set) )  
+scale_valid = np.maximum( np.abs(np.subtract(max_valid, mean_valid)), np.abs(np.subtract(min_valid, mean_valid) ))
+
+mean_test = np.divide (sum_test, seq_len * len(test_set) )  
+scale_test = np.maximum( np.abs( np.subtract(max_test,  mean_test)), np.abs( np.subtract(min_test, mean_test) ))
+
+
+mean_ = np.divide( np.add(np.add(sum_train, sum_valid), sum_test) ,  seq_len * float( len(train_set) + len(valid_set) + len(test_set)))
+
+scale_train_mean_  = np.maximum( np.abs( np.subtract( max_train, mean_) ),  np.abs(  np.subtract( min_train, mean_) ))
+scale_valid_mean_  = np.maximum( np.abs( np.subtract( max_valid, mean_) ) , np.abs(  np.subtract( min_valid, mean_) ))
+scale_test_mean_  =  np.maximum( np.abs( np.subtract( max_test , mean_) ),  np.abs(  np.subtract( min_test , mean_) ))
+scale_ =   np.maximum(scale_train_mean_, np.maximum(scale_valid_mean_, scale_test_mean_) )
+
 
 #%%
-
 plt.figure(1)
+
+plt.subplot(241)
 plt.title("mean_{}".format("train"))
 plt.plot(mean_train)
-plt.figure(2)
+plt.subplot(242)
 plt.title("scale_{}".format("train"))
 plt.plot(scale_train)
 
-plt.figure(3)
+
+plt.subplot(243)
 plt.title("mean_{}".format("valid"))
 plt.plot(mean_valid)
-plt.figure(4)
+plt.subplot(244)
 plt.title("scale_{}".format("valid"))
 plt.plot(scale_valid)
 
-plt.figure(5)
+plt.subplot(245)
 plt.title("mean_{}".format("test"))
 plt.plot(mean_test)
-plt.figure(6)
+plt.subplot(246)
 plt.title("scale_{}".format("test"))
 plt.plot(scale_test)
 
 
+plt.subplot(247)
+plt.title("mean_{}".format("total"))
+plt.plot(mean_)
 
+plt.subplot(248)
+plt.title("scale_{}".format("total"))
+plt.plot(scale_)
+
+plt.show()
