@@ -16,8 +16,7 @@ from transformer.Optim import ScheduledOptim
 
 import sys
 sys.path.insert(0, './dataset/')
-from kk_mimic_dataset import kk_mimic_dataset
-from kk_mimic_dataset import loader
+from dataset.kk_mimic_dataset import kk_mimic_dataset, loader
 
 from Transformer_classifier import model
 from AUCMeter import AUCMeter
@@ -274,7 +273,7 @@ def main():
     
     #========= Loading Dataset =========#
 #    data = torch.load(opt.data) #TODO only used for next line, why should we?
-    training_data =   loader(kk_mimic_dataset(phase="train"),      batch_size=opt.batch_size, num_workers=1) #TODO :fix
+    training_data =   loader(kk_mimic_dataset(phase="train"), batch_size=opt.batch_size, num_workers=1) #TODO :fix
     validation_data = loader(kk_mimic_dataset(phase="valid"), batch_size=opt.batch_size, num_workers=1) #TODO :fix
         
 

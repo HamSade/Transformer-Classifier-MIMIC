@@ -22,10 +22,10 @@ class kk_mimic_dataset(data.Dataset):
         
         super(kk_mimic_dataset, self).__init__()
         if phase == "train": 
-            data_path = "../../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
+            data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
             data = datasets.load_svmlight_file(data_path)           
         else:
-            data_path = "../../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
+            data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
             data = np.array(datasets.load_svmlight_file(data_path))
            
             if  phase == "valid":#               
@@ -33,8 +33,8 @@ class kk_mimic_dataset(data.Dataset):
             else:            
                 data = [ data[0][data[1].shape[0]//10:], data[1][data[1].shape[0]//10:] ]  #TODO 90% for test
                 
-        # ONLY for fast debugging
-        data = [ data[0][:data[1].shape[0]//100], data[1][:data[1].shape[0]//100] ] #Only 1/100 of all patients
+        # TODO: ONLY for fast debugging
+#        data = [ data[0][:data[1].shape[0]//100], data[1][:data[1].shape[0]//100] ] #Only 1/100 of all patients
         
         self.d_feat = 14400
         self.seq_len = seq_len
@@ -48,7 +48,7 @@ class kk_mimic_dataset(data.Dataset):
         
         #Data normalization 
         if data_norm:
-            file_name = "stats.npy"
+            file_name = "dataset/stats.npy"
             stats = np.load(file_name)  #stats = ("mean_", "scale_", "min_", "max_", "var_") * 1440
             mean_ = stats[0,:]
             scale_ = stats[1,:]
