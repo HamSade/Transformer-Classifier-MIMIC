@@ -12,20 +12,25 @@ except:
     pass
     
 import numpy as np
-#import sklearn
 from sklearn import datasets
 
 #%%
 class kk_mimic_dataset(data.Dataset):
     
-    def __init__(self, phase="train", seq_len=10, data_norm=True):
+    def __init__(self, phase="train", seq_len=10, data_norm=True, test=False):
         
         super(kk_mimic_dataset, self).__init__()
         if phase == "train": 
-            data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
+            if test:
+                data_path = "../../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"
+            else:    
+                data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_TRAIN"                
             data = datasets.load_svmlight_file(data_path)           
         else:
-            data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
+            if test:
+                data_path = "../../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"
+            else: 
+                data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"                
             data = np.array(datasets.load_svmlight_file(data_path))
            
             if  phase == "valid":#               
@@ -36,6 +41,7 @@ class kk_mimic_dataset(data.Dataset):
         # TODO: ONLY for fast debugging
 #        data = [ data[0][:data[1].shape[0]//100], data[1][:data[1].shape[0]//100] ] #Only 1/100 of all patients
         
+        data = np.nan_to_num(data)
         self.d_feat = 14400
         self.seq_len = seq_len
         self.features = np.array(data[0].todense())
@@ -48,11 +54,14 @@ class kk_mimic_dataset(data.Dataset):
         
         #Data normalization 
         if data_norm:
-            file_name = "dataset/stats.npy"
+            if test:
+                file_name = "stats.npy"
+            else:
+                file_name = "dataset/stats.npy"            
             stats = np.load(file_name)  #stats = ("mean_", "scale_", "min_", "max_", "var_") * 1440
-            mean_ = stats[0,:]
-            scale_ = stats[1,:]
-            self.temporal_features = np.divide( np.subtract(self.temporal_features, mean_), scale_)
+            mean_ = np.nan_to_num(stats[0,:])
+            scale_= np.nan_to_num(stats[1,:])
+            self.temporal_features = np.nan_to_num( np.divide( np.subtract(self.temporal_features, mean_), scale_) )
         
     #%%   
     def __len__(self):
@@ -70,12 +79,18 @@ class kk_mimic_dataset(data.Dataset):
         gold = torch.LongTensor( [gold] )
         return src_seq, src_pos, gold, src_fixed_feats
 
-#%% Data loader
-        
-def loader(dataset, batch_size=64, shuffle=True, num_workers=1):
+#%% Data loader     
+def loader(dataset, batch_size=64, shuffle=True, num_workers=0, drop_last=True):
+    torch.initial_seed()  #to change the seed
     params = {'batch_size': batch_size, 'shuffle': shuffle, 'num_workers':num_workers}
     return data.DataLoader(dataset, **params) #, collate_fn=collate_fn_temp)
-                
 
-
-
+#%% test data loader
+#dataset_ = kk_mimic_dataset(test=True)
+#loader_ = iter(loader(dataset_, batch_size=1))
+#
+#for i in range(10):
+#    x = next(loader_)
+#    temp_features = x[0]
+#    print("sum temp_features = ", np.sum(temp_features.numpy(), axis=(0,1)))
+#    print("labels = ", x[2])

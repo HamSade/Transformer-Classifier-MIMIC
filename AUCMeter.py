@@ -90,6 +90,13 @@ class AUCMeter(Meter.Meter):
         return (area, tpr, fpr)
         
         
-        
+#%%
+#gold = np.random.randint(low=0, high=2, size=100000)
+#output = np.array( map(lambda x: x if np.random.choice([True, False]) else 1-x, gold) )
+#auc_ = AUCMeter()
+#
+#auc_.add(output, gold)
+#print("results = ", auc_.value())      
+#        
         
         
