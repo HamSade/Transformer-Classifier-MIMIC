@@ -33,16 +33,17 @@ class kk_mimic_dataset(data.Dataset):
                 data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"                
             data = np.array(datasets.load_svmlight_file(data_path))
            
+            percent = 20
             if  phase == "valid":#               
-                data = [ data[0][:data[1].shape[0]//10], data[1][:data[1].shape[0]//10] ]  #TODO 10% for validation
+                data = [ data[0][:data[1].shape[0]//percent], data[1][:data[1].shape[0]//percent] ]  #TODO 10% for validation
             else:            
-                data = [ data[0][data[1].shape[0]//10:], data[1][data[1].shape[0]//10:] ]  #TODO 90% for test
+                data = [ data[0][data[1].shape[0]//percent:], data[1][data[1].shape[0]//percent:] ]  #TODO 90% for test
                 
         # TODO: ONLY for fast debugging
         factor = 100
         data = [ data[0][:data[1].shape[0]//factor], data[1][:data[1].shape[0]//factor] ] #Only 1/100 of all patients
         
-        data = np.nan_to_num(data)
+#        data = np.nan_to_num(data)
         self.d_feat = 14400
         self.seq_len = seq_len
         self.features = np.array(data[0].todense())

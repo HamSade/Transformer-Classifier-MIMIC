@@ -54,9 +54,9 @@ def train_epoch(model_, training_data, optimizer, device):
     pred = []
     gold = []
     n_seq_total = 0             
-    for batch in tqdm(
-            training_data, mininterval=2,
-            desc='  - (Training)   ', leave=False):
+    for batch in training_data:
+#            tqdm(training_data, mininterval=2,
+#            desc='  - (Training)   ', leave=False):
 
         # prepare data
         src_seq, src_pos, gold_, src_fixed_feats = map(lambda x: x.to(device), batch)
@@ -106,9 +106,9 @@ def eval_epoch(model_, validation_data, device):
     n_seq_total = 0
     
     with torch.no_grad():
-        for batch in tqdm(
-                validation_data, mininterval=2,
-                desc='  - (Validation) ', leave=False):
+        for batch in validation_data:
+#                tqdm(validation_data, mininterval=2,
+#                desc='  - (Validation) ', leave=False):
 
             # prepare data
             src_seq, src_pos, gold_, src_fixed_feats = map(lambda x: x.to(device), batch)
@@ -158,8 +158,8 @@ def train(model_, training_data, validation_data, optimizer, device, opt):
             log_tf.write(' epoch, loss, AUC\n')
 
     valid_auc = []
-    for epoch_i in range(opt.epoch):
-        print('[ Epoch = ', epoch_i, ']')
+    for epoch_i in tqdm(range(opt.epoch)):
+        print('\n[ Epoch = ', epoch_i, ']')
 
         start = time.time()
         train_loss_, train_auc_ = train_epoch(
@@ -208,8 +208,8 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-data', default='trained.chkpt', required=False)
-    parser.add_argument('-epoch', type=int, default=1000)
-    parser.add_argument('-batch_size', type=int, default=64)
+    parser.add_argument('-epoch', type=int, default=10000)
+    parser.add_argument('-batch_size', type=int, default=128)
 
     parser.add_argument('-d_src_vec', type=int, default=1440)
     parser.add_argument('-len_seq', type=int, default=10)
@@ -263,7 +263,7 @@ def main():
         optim.Adam(
             filter(lambda x: x.requires_grad, model_.parameters()),
             betas=(0.9, 0.98), eps=1e-09),
-        0.001 * opt.d_emb_vec * opt.n_head, opt.n_warmup_steps)  #TODO 0.0001 == 100 times more!!
+        opt.d_emb_vec * opt.n_head, opt.n_warmup_steps)  #TODO 0.0001 == 100 times more!!
 
     train(model_, training_data, validation_data, optimizer, device ,opt)
 
