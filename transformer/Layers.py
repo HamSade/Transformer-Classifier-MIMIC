@@ -4,10 +4,7 @@ import torch.nn as nn
 #from transformer.SubLayers import MultiHeadAttention, PositionwiseFeedForward
 from SubLayers import MultiHeadAttention, PositionwiseFeedForward
 
-
-__author__ = "Yu-Hsiang Huang"
-
-
+#%%
 class EncoderLayer(nn.Module):
     ''' Compose of two layers '''
 

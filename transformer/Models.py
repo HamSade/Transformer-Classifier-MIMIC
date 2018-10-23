@@ -10,8 +10,6 @@ import numpy as np
 import Constants as Constants
 from Layers import EncoderLayer#, DecoderLayer
 
-__author__ = "Yu-Hsiang Huang"
-
 ##########################################################
 def get_sinusoid_encoding_table(n_position, d_emb_vec, padding_idx=None):
     ''' Sinusoid position encoding table '''
