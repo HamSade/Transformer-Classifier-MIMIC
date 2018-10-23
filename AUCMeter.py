@@ -79,6 +79,9 @@ class AUCMeter(Meter.Meter):
         tpr /= (self.targets.sum() * 1.0)
         fpr /= ((self.targets - 1.0).sum() * -1.0)
 
+        tpr = np.nan_to_num(tpr)
+        fpr = np.nan_to_num(fpr)      
+        
         # calculating area under curve using trapezoidal rule
         n = tpr.shape[0]
         h = fpr[1:n] - fpr[0:n - 1]

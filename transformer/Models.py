@@ -72,7 +72,6 @@ def get_attn_key_pad_mask(seq_k, seq_q):
 #seq=torch.FloatTensor(seq)
 #padding_mask = get_non_pad_mask(seq)
 #print(padding_mask)  
-    
 
 ##########################################################
 class Encoder(nn.Module):

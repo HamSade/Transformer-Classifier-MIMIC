@@ -16,6 +16,10 @@ stats = np.load(file_name)  #stats = ("mean_", "scale_", "min_", "max_", "var_")
 mean_ = stats[0,:]
 scale_ = stats[1,:]
 
+
+
+print("scale_ = ", scale_)
+
 plt.figure(1)
 
 plt.subplot(211)
@@ -27,3 +31,6 @@ plt.title("scale")
 plt.plot(scale_)
 
 plt.show()
+
+
+

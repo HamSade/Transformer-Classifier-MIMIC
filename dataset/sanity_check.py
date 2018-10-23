@@ -13,9 +13,9 @@ import matplotlib.pyplot as plt
 import colored_traceback; colored_traceback.add_hook()
 
 #%%
-train_set = kk_mimic_dataset()
-valid_set = kk_mimic_dataset(phase='valid')
-test_set = kk_mimic_dataset(phase='test')
+train_set = kk_mimic_dataset(test=True)
+valid_set = kk_mimic_dataset(phase='valid', test=True)
+test_set = kk_mimic_dataset(phase='test', test=True)
 
 print("n_train = ", len(train_set))
 print("n_valid = ", len(valid_set))
@@ -24,7 +24,6 @@ print("n_test = ", len(test_set))
 #%%
 num_feats = 1440
 seq_len  = 10
-
 
 max_train = [-np.inf]*num_feats
 min_train = [np.inf]*num_feats

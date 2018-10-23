@@ -17,9 +17,10 @@ class ffn_compressed(nn.Module):
     def __init__(self, d_in, d_hid, d_out, dropout=0.1):
         super(ffn_compressed, self).__init__()
         
-        self.w_1 = nn.Conv1d(d_in, d_hid, 1) # position-wise
-        self.w_2 = nn.Conv1d(d_hid, d_out, 1) # position-wise
-#        self.w = nn.Conv1d(d_in, d_out, 1)
+#        self.w_1 = nn.Conv1d(d_in, d_hid, 1) # position-wise
+#        self.w_2 = nn.Conv1d(d_hid, d_out, 1) # position-wise
+        self.w_1 = nn.Conv1d(d_in, d_out, 1)
+        self.w_2 = nn.Conv1d(d_out, d_out, 1)
         
         self.layer_norm = nn.LayerNorm(d_out)
         self.dropout = nn.Dropout(dropout)
@@ -28,7 +29,6 @@ class ffn_compressed(nn.Module):
         output = x.transpose(1, 2)
         
         output = self.w_2(F.relu(self.w_1(output)))
-#        output = F.relu(self.w(output))  #TODO relu makes all features positive
 
         output = output.transpose(1, 2)
         output = self.dropout(output)

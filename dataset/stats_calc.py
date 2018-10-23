@@ -15,9 +15,9 @@ from kk_mimic_dataset import kk_mimic_dataset
 
 #%% Test dataloader
                 
-train_set = kk_mimic_dataset(data_norm=False)
-valid_set = kk_mimic_dataset(phase='valid',data_norm=False)
-test_set = kk_mimic_dataset(phase='test',data_norm=False)
+train_set = kk_mimic_dataset(data_norm=False, test=True)
+valid_set = kk_mimic_dataset(phase='valid',data_norm=False, test=True)
+test_set = kk_mimic_dataset(phase='test',data_norm=False, test=True)
 
 print("len(training_set)", len(train_set))
 print("len(validation_set)", len(valid_set))
