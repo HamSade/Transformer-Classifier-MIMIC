@@ -127,7 +127,7 @@ def eval_epoch(model_, validation_data, device):
             n_seq_total += 1
 
             # Printing loss
-            
+           
             if n_seq_total%print_chunk_size == print_chunk_size-1:
                 print("validation loss = ", loss.item())
 
@@ -208,7 +208,7 @@ def main():
 
     parser.add_argument('-data', default='trained.chkpt', required=False)
     parser.add_argument('-epoch', type=int, default=1000)
-    parser.add_argument('-batch_size', type=int, default=16)
+    parser.add_argument('-batch_size', type=int, default=64)
 
     
     parser.add_argument('-d_emb_vec', type=int, default=1440)

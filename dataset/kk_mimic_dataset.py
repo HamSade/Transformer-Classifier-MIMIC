@@ -19,6 +19,15 @@ class kk_mimic_dataset(data.Dataset):
     
     def __init__(self, phase="train", seq_len=10, data_norm=True, test=False):
         
+        percent = 20
+        n_valid = percent/20 * 328
+        ind_valid = np.ones(n_valid)
+        ind_valid = np.concatenate((ind_valid, np.zeros(6564-n_valid)))
+        ind_valid = np.random.permutation(ind_valid)
+        ind_test = 1 - ind_valid
+        self.ind_valid = np.greater(ind_valid, 0)
+        self.ind_test = np.greater(ind_test, 0)
+        
         super(kk_mimic_dataset, self).__init__()
         if phase == "train": 
             if test:
@@ -33,21 +42,21 @@ class kk_mimic_dataset(data.Dataset):
                 data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"                
             data = np.array(datasets.load_svmlight_file(data_path))
         
-            percent = 20
             if  phase == "valid":#               
-                data = [ data[0][:data[1].shape[0]//percent], data[1][:data[1].shape[0]//percent] ]
+#                data = [ data[0][:data[1].shape[0]//percent], data[1][:data[1].shape[0]//percent] ]
+                data = [ data[0][self.ind_valid], data[1][self.ind_valid] ]
             else:            
-                data = [ data[0][data[1].shape[0]//percent:], data[1][data[1].shape[0]//percent:] ]
+#                data = [ data[0][data[1].shape[0]//percent:], data[1][data[1].shape[0]//percent:] ]
+                data = [ data[0][self.ind_test], data[1][self.ind_test] ]
                 
         # TODO: ONLY for fast debugging
 #        factor = 10
         # First factor ones
 #        data = [ data[0][:data[1].shape[0]//factor], data[1][:data[1].shape[0]//factor] ]
-        
         #Random selection
-        factor = 10
+        factor = 20
         n_data = data[0].shape[0]
-        ind_ = np.ones(factor)
+        ind_ = np.ones(n_data//factor)
         ind_ = np.concatenate((ind_, np.zeros(n_data-factor)))
         ind_ = np.random.permutation(ind_)
         ind_ = np.greater(ind_, 0)
