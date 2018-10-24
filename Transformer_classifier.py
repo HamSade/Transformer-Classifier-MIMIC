@@ -37,22 +37,14 @@ class ffn_compressed(nn.Module):
         
         
 class model(nn.Module):
-    
-    d_src_vec = 1440
-    d_emb_vec = 304
-    len_seq = 10
-    n_layers = 3
-    n_head = 8
-    dropout = 0.1
-    d_inner = 2048
         
-    def __init__(self, d_src_vec=d_src_vec,            
-                 len_seq=len_seq,
-                 d_emb_vec=d_emb_vec,
-                 n_layers = n_layers,
-                 n_head=n_head, d_k=d_emb_vec//n_head,
-                 d_v=d_emb_vec//n_head,
-                 d_inner=d_inner, dropout=dropout):
+    def __init__(self, d_src_vec,            
+                 len_seq,
+                 d_emb_vec,
+                 n_layers,
+                 n_head, d_k,
+                 d_v,
+                 d_inner, dropout):
         
         super(model, self).__init__()
         self.d_src_vec = d_src_vec
@@ -71,12 +63,12 @@ class model(nn.Module):
             d_v=self.d_emb_vec//self.n_head, d_inner=self.d_inner,
             dropout=self.dropout)       
         #Fully connected. Seems to have a lot of params
-#        self.FC1 = nn.Linear(304, 64)   
-#        self.FC2 = nn.Linear(64, 8)
-#        self.FC3 = nn.Linear(8, 2)
+        self.FC1 = nn.Linear(self.d_emb_vec * self.len_seq , 64)   
+        self.FC2 = nn.Linear(64, 8)
+        self.FC3 = nn.Linear(8, 2)
         #Average pooling
-        self.avg_pooling = nn.AvgPool1d(d_emb_vec, stride=1)  #d_emb_vec-1: so that all features are average and become a scalar
-        self.FC = nn.Linear(len_seq, 2)  #2: binary classification
+#        self.avg_pooling = nn.AvgPool1d(d_emb_vec, stride=1)  #d_emb_vec-1: so that all features are average and become a scalar
+#        self.FC = nn.Linear(len_seq, 2)  #2: binary classification
         self.softmax = nn.Softmax(dim=-1)
         
         
@@ -84,14 +76,16 @@ class model(nn.Module):
         
         x = self.ffn(x)       
         x = self.encoder(x, x_pos, return_attns=False)
-#        x = self.FC1(x); x = self.FC2(x); x = self.FC3(x)
+        x =  x.view(x.shape[0], x.shape[1]*x.shape[2])
+        x = self.FC1(x); x = self.FC2(x); x = self.FC3(x)
+        
 #        print("size before avg pooling = ", x.shape)
-        x = self.avg_pooling(x)
+#        x = self.avg_pooling(x)
 #        print("size after avg pooling = ", x.shape)
-    
-        x = torch.squeeze(x)  #To get rid of 1-dimensional feature and results in [batch_size, len_seq] size
+#        x = torch.squeeze(x)  #To get rid of 1-dimensional feature and results in [batch_size, len_seq] size
 #        print('shape after squeeze = ', x.shape)
-        x = self.FC(x)
+#        x = self.FC(x)
+        
         return self.softmax(x)
     
        

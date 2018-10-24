@@ -75,8 +75,7 @@ def train_epoch(model_, training_data, optimizer, device):
         optimizer.step_and_update_lr()        
         # note keeping
         total_loss += loss.item() 
-        
-        
+             
         pred_ = pred_.max(1)[1]
 #        print("pred_.shape", pred_.shape)
         pred.append(pred_.cpu().numpy())
@@ -208,21 +207,22 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-data', default='trained.chkpt', required=False)
-    parser.add_argument('-epoch', type=int, default=10000)
-    parser.add_argument('-batch_size', type=int, default=128)
+    parser.add_argument('-epoch', type=int, default=1000)
+    parser.add_argument('-batch_size', type=int, default=16)
 
-    parser.add_argument('-d_src_vec', type=int, default=1440)
+    
+    parser.add_argument('-d_emb_vec', type=int, default=1440)
+    parser.add_argument('-d_k', type=int, default=1440//8)
+    parser.add_argument('-d_v', type=int, default=1440//8)
+
+    
     parser.add_argument('-len_seq', type=int, default=10)
-    parser.add_argument('-d_emb_vec', type=int, default=304)
+    
+    parser.add_argument('-d_src_vec', type=int, default=1440)    
     parser.add_argument('-d_inner', type=int, default=2048) #TODO 304/512.*2048=1216.0
     parser.add_argument('-n_head', type=int, default=8)
     parser.add_argument('-n_layers', type=int, default=3)  #TODO n_layer=6?
-    
-    parser.add_argument('-d_k', type=int, default=304//8)
-    parser.add_argument('-d_v', type=int, default=304//8)
-        
     parser.add_argument('-n_warmup_steps', type=int, default=4000)
-
     parser.add_argument('-dropout', type=float, default=0.1)
     parser.add_argument('-embs_share_weight', action='store_true')
     parser.add_argument('-proj_share_weight', action='store_true')

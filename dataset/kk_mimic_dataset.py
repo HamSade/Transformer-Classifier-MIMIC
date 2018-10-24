@@ -32,16 +32,27 @@ class kk_mimic_dataset(data.Dataset):
             else: 
                 data_path = "../mimic-libsvm/" + "PATIENTS_SPLIT_XGB_VALID"                
             data = np.array(datasets.load_svmlight_file(data_path))
-           
+        
             percent = 20
             if  phase == "valid":#               
-                data = [ data[0][:data[1].shape[0]//percent], data[1][:data[1].shape[0]//percent] ]  #TODO 10% for validation
+                data = [ data[0][:data[1].shape[0]//percent], data[1][:data[1].shape[0]//percent] ]
             else:            
-                data = [ data[0][data[1].shape[0]//percent:], data[1][data[1].shape[0]//percent:] ]  #TODO 90% for test
+                data = [ data[0][data[1].shape[0]//percent:], data[1][data[1].shape[0]//percent:] ]
                 
         # TODO: ONLY for fast debugging
-        factor = 100
-        data = [ data[0][:data[1].shape[0]//factor], data[1][:data[1].shape[0]//factor] ] #Only 1/100 of all patients
+#        factor = 10
+        # First factor ones
+#        data = [ data[0][:data[1].shape[0]//factor], data[1][:data[1].shape[0]//factor] ]
+        
+        #Random selection
+        factor = 10
+        n_data = data[0].shape[0]
+        ind_ = np.ones(factor)
+        ind_ = np.concatenate((ind_, np.zeros(n_data-factor)))
+        ind_ = np.random.permutation(ind_)
+        ind_ = np.greater(ind_, 0)
+        data = [ data[0][ind_], data[1][ind_] ]
+        
         
 #        data = np.nan_to_num(data)
         self.d_feat = 14400
@@ -89,15 +100,15 @@ def loader(dataset, batch_size=64, shuffle=True, num_workers=0, drop_last=True):
 
 #%% test data loader
 #dataset_ = kk_mimic_dataset(test=True)
-#loader_ = iter(loader(dataset_, batch_size=1))
+#loader_ = iter(loader(dataset_, batch_size=2))
 #
-#for i in range(10):
-#    x = next(loader_)
-#    temp_features = x[0]
-#    print("sum temp_features = ", np.sum(temp_features.numpy()))
-#    print("labels = ", x[2])
-
-
+#for j in range(5):
+#    print('*'*50 )
+#    for i in range(10):
+#        x = next(loader_)
+#        temp_features = x[0]
+#        print("sum temp_features = ", np.sum(temp_features.numpy()))
+#        print("labels = ", x[2])
 
 
 
