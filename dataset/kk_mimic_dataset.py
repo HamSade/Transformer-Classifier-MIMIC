@@ -49,8 +49,8 @@ class kk_mimic_dataset(data.Dataset):
 #                data = [ data[0][data[1].shape[0]//percent:], data[1][data[1].shape[0]//percent:] ]
                 data = [ data[0][self.ind_test], data[1][self.ind_test] ]
                 
-        # TODO: ONLY for fast debugging
-#        factor = 10
+#        # TODO: ONLY for fast debugging
+##        factor = 10
 #        data = [ data[0][:data[1].shape[0]//factor], data[1][:data[1].shape[0]//factor] ]
 
         #Random selection
