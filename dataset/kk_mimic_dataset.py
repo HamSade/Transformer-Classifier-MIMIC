@@ -51,13 +51,13 @@ class kk_mimic_dataset(data.Dataset):
                 
         # TODO: ONLY for fast debugging
 #        factor = 10
-        # First factor ones
 #        data = [ data[0][:data[1].shape[0]//factor], data[1][:data[1].shape[0]//factor] ]
+
         #Random selection
         factor = 20
-        n_data = data[0].shape[0]
+        n_data = data[1].shape[0]
         ind_ = np.ones(n_data//factor)
-        ind_ = np.concatenate((ind_, np.zeros(n_data-factor)))
+        ind_ = np.concatenate((ind_, np.zeros(n_data-n_data//factor)))
         ind_ = np.random.permutation(ind_)
         ind_ = np.greater(ind_, 0)
         data = [ data[0][ind_], data[1][ind_] ]

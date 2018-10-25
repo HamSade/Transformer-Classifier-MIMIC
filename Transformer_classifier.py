@@ -67,11 +67,15 @@ class model(nn.Module):
 #        self.FC2 = nn.Linear(64, 8)
 #        self.FC3 = nn.Linear(8, 2)
             
-        #Average pooling
-        self.avg_pooling = nn.AvgPool1d(d_emb_vec-1, stride=1)  #d_emb_vec-1: To have 2 classes
-        self.FC = nn.Linear(len_seq * 2, 2)  #2: binary classification
-        self.softmax = nn.Softmax(dim=-1)
+#        #Average pooling over features
+#        self.avg_pooling = nn.AvgPool1d(d_emb_vec-1, stride=1)  #d_emb_vec-1: To have 2 classes
+#        self.FC = nn.Linear(len_seq * 2, 2)  #2: binary classification
+#        self.softmax = nn.Softmax(dim=-1)
         
+        #Average pooling over sequence
+        self.avg_pooling = nn.AvgPool1d(len_seq, stride=1)  #self.len_seq: To have 1 averaged token
+        self.FC = nn.Linear(d_emb_vec, 2)  #2: binary classification
+        self.softmax = nn.Softmax(dim=-1)
         
     def forward(self, x, x_pos):
         
@@ -82,13 +86,19 @@ class model(nn.Module):
 #        x =  x.view(x.shape[0], x.shape[1]*x.shape[2])
 #        x = self.FC1(x); x = self.FC2(x); x = self.FC3(x)
         
-        #
-#        print("size before avg pooling = ", x.shape)
+#        #Average pooling over features
+#        x = self.avg_pooling(x)
+##        print("size after avg pooling = ", x.shape)
+##        x = torch.squeeze(x)  #To get rid of 1-dimensional feature and results in [batch_size, len_seq] size
+#        x = x.view(-1, self.len_seq*2)
+##        print('shape after squeeze = ', x.shape)
+#        x = self.FC(x)
+        
+        #Average pooling over sequence
+        x = x.transpose(2,1)
         x = self.avg_pooling(x)
-#        print("size after avg pooling = ", x.shape)
-#        x = torch.squeeze(x)  #To get rid of 1-dimensional feature and results in [batch_size, len_seq] size
-        x = x.view(-1, self.len_seq*2)
-#        print('shape after squeeze = ', x.shape)
+        x = x.transpose(2,1)
+        x = torch.squeeze(x)  #To get rid of 1-dimensional feature and results in [batch_size, feature_size] size
         x = self.FC(x)
         
         return self.softmax(x)
